@@ -49,7 +49,7 @@ final class MultiLogRecordExporter implements LogRecordExporter {
       } catch (RuntimeException e) {
         // If an exception was thrown by the exporter
         logger.log(Level.WARNING, "Exception thrown by the export.", e);
-        results.add(CompletableResultCode.ofFailure());
+        results.add(CompletableResultCode.ofExceptionalFailure(e));
         continue;
       }
       results.add(exportResult);
