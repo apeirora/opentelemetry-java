@@ -21,6 +21,7 @@ import io.opentelemetry.internal.testing.slf4j.SuppressLogger;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
+import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessorTest.CompletableLogRecordExporter;
 import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessorTest.WaitingLogRecordExporter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -42,28 +44,34 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class AuditLogRecordProcessorTest {
 
+  // Simple in-memory implementation for testing
+  static class InMemoryAuditLogStore implements AuditLogStore {
+    private final List<LogRecordData> logs = new ArrayList<>();
+
+    @Override
+    public Collection<LogRecordData> getAll() {
+      return logs;
+    }
+
+    @Override
+    public void removeAll(Collection<LogRecordData> logs) {
+      this.logs.removeAll(logs);
+    }
+
+    @Override
+    public void save(LogRecordData logRecord) throws IOException {
+      logs.add(logRecord);
+    }
+  }
+
   private static final String LOG_MESSAGE_1 = "Hello audit world 1!";
   private static final String LOG_MESSAGE_2 = "Hello audit world 2!";
-  private static final long MAX_SCHEDULE_DELAY_MILLIS = 500;
 
-  @Mock private LogRecordExporter mockLogRecordExporter;
+  private static final long MAX_SCHEDULE_DELAY_MILLIS = 100;
+
   @Mock private AuditExceptionHandler mockExceptionHandler;
+  @Mock private LogRecordExporter mockLogRecordExporter;
   @Mock private AuditLogStore mockLogStore;
-
-  @BeforeEach
-  void setUp() {
-    when(mockLogRecordExporter.shutdown()).thenReturn(CompletableResultCode.ofSuccess());
-    when(mockLogStore.getAll()).thenReturn(new ArrayList<>());
-  }
-
-  private void emitLog(SdkLoggerProvider sdkLoggerProvider, String message) {
-    sdkLoggerProvider
-        .loggerBuilder(getClass().getName())
-        .build()
-        .logRecordBuilder()
-        .setBody(message)
-        .emit();
-  }
 
   @Test
   void builderDefaults() {
@@ -127,93 +135,13 @@ class AuditLogRecordProcessorTest {
         .hasMessage("maxExportBatchSize must be positive.");
   }
 
-  @Test
-  void emitMultipleLogs() throws IOException {
-    WaitingLogRecordExporter waitingLogRecordExporter =
-        new WaitingLogRecordExporter(2, CompletableResultCode.ofSuccess());
-    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
-
-    SdkLoggerProvider loggerProvider =
-        SdkLoggerProvider.builder()
-            .addLogRecordProcessor(
-                AuditLogRecordProcessor.builder(waitingLogRecordExporter, logStore)
-                    .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                    .build())
-            .build();
-
-    emitLog(loggerProvider, LOG_MESSAGE_1);
-    emitLog(loggerProvider, LOG_MESSAGE_2);
-    List<LogRecordData> exported = waitingLogRecordExporter.waitForExport();
-    assertThat(exported)
-        .satisfiesExactly(
-            logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_1),
-            logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_2));
-  }
-
-  @Test
-  void emitMoreLogsThanBufferSize() throws IOException {
-    CompletableLogRecordExporter logRecordExporter = new CompletableLogRecordExporter();
-    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
-
-    SdkLoggerProvider sdkLoggerProvider =
-        SdkLoggerProvider.builder()
-            .addLogRecordProcessor(
-                AuditLogRecordProcessor.builder(logRecordExporter, logStore)
-                    .setMaxExportBatchSize(2)
-                    .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                    .build())
-            .build();
-
-    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
-    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
-    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
-    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
-    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
-    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
-
-    logRecordExporter.succeed();
-
-    await()
-        .untilAsserted(
-            () ->
-                assertThat(logRecordExporter.getExported())
-                    .hasSize(6)
-                    .allSatisfy(logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_1)));
-  }
-
-  @Test
-  void forceFlush() throws IOException {
-    WaitingLogRecordExporter waitingLogRecordExporter =
-        new WaitingLogRecordExporter(100, CompletableResultCode.ofSuccess(), 1);
-    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
-
-    AuditLogRecordProcessor auditLogRecordProcessor =
-        AuditLogRecordProcessor.builder(waitingLogRecordExporter, logStore)
-            .setMaxExportBatchSize(49)
-            .setScheduleDelay(10, TimeUnit.SECONDS)
-            .build();
-
-    SdkLoggerProvider sdkLoggerProvider =
-        SdkLoggerProvider.builder().addLogRecordProcessor(auditLogRecordProcessor).build();
-
-    for (int i = 0; i < 50; i++) {
-      emitLog(sdkLoggerProvider, "notExported");
-    }
-    List<LogRecordData> exported = waitingLogRecordExporter.waitForExport();
-    assertThat(exported).isNotNull();
-    assertThat(exported.size()).isEqualTo(49);
-
-    for (int i = 0; i < 50; i++) {
-      emitLog(sdkLoggerProvider, "notExported");
-    }
-    exported = waitingLogRecordExporter.waitForExport();
-    assertThat(exported).isNotNull();
-    assertThat(exported.size()).isEqualTo(49);
-
-    auditLogRecordProcessor.forceFlush().join(10, TimeUnit.SECONDS);
-    exported = waitingLogRecordExporter.getExported();
-    assertThat(exported).isNotNull();
-    assertThat(exported.size()).isEqualTo(2);
+  private void emitLog(SdkLoggerProvider sdkLoggerProvider, String message) {
+    sdkLoggerProvider
+        .loggerBuilder(getClass().getName())
+        .build()
+        .logRecordBuilder()
+        .setBody(message)
+        .emit();
   }
 
   @Test
@@ -252,49 +180,57 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void ignoresNullLogs() throws IOException {
-    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
-    AuditLogRecordProcessor processor =
-        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build();
-    try {
-      assertThatCode(() -> processor.onEmit(null, null)).doesNotThrowAnyException();
-    } finally {
-      processor.shutdown();
-    }
-  }
-
-  @Test
-  @SuppressLogger(MultiLogRecordExporter.class)
-  void exporterThrowsException() throws IOException {
-    WaitingLogRecordExporter waitingLogRecordExporter =
-        new WaitingLogRecordExporter(1, CompletableResultCode.ofSuccess());
-    doThrow(new IllegalArgumentException("No export for you."))
-        .when(mockLogRecordExporter)
-        .export(anyList());
+  void emitMoreLogsThanBufferSize() throws IOException {
+    CompletableLogRecordExporter logRecordExporter = new CompletableLogRecordExporter();
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
 
     SdkLoggerProvider sdkLoggerProvider =
         SdkLoggerProvider.builder()
             .addLogRecordProcessor(
-                AuditLogRecordProcessor.builder(
-                        LogRecordExporter.composite(
-                            Arrays.asList(mockLogRecordExporter, waitingLogRecordExporter)),
-                        logStore)
+                AuditLogRecordProcessor.builder(logRecordExporter, logStore)
+                    .setMaxExportBatchSize(2)
                     .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
                     .build())
             .build();
 
     emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
 
+    logRecordExporter.succeed();
+
+    await()
+        .untilAsserted(
+            () ->
+                assertThat(logRecordExporter.getExported())
+                    .hasSize(6)
+                    .allSatisfy(logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_1)));
+  }
+
+  @Test
+  void emitMultipleLogs() throws IOException {
+    WaitingLogRecordExporter waitingLogRecordExporter =
+        new WaitingLogRecordExporter(2, CompletableResultCode.ofSuccess());
+    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
+
+    SdkLoggerProvider loggerProvider =
+        SdkLoggerProvider.builder()
+            .addLogRecordProcessor(
+                AuditLogRecordProcessor.builder(waitingLogRecordExporter, logStore)
+                    .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
+                    .build())
+            .build();
+
+    emitLog(loggerProvider, LOG_MESSAGE_1);
+    emitLog(loggerProvider, LOG_MESSAGE_2);
     List<LogRecordData> exported = waitingLogRecordExporter.waitForExport();
     assertThat(exported)
-        .satisfiesExactly(logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_1));
-    waitingLogRecordExporter.reset();
-    // Continue to export after the exception was received.
-    emitLog(sdkLoggerProvider, LOG_MESSAGE_2);
-    exported = waitingLogRecordExporter.waitForExport();
-    assertThat(exported)
-        .satisfiesExactly(logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_2));
+        .satisfiesExactly(
+            logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_1),
+            logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_2));
   }
 
   @Test
@@ -312,6 +248,140 @@ class AuditLogRecordProcessorTest {
     emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
 
     verify(mockExceptionHandler, times(1)).handle(any(AuditException.class));
+  }
+
+  @Test
+  @SuppressLogger(MultiLogRecordExporter.class)
+  void exporterThrowsException() throws Exception {
+    WaitingLogRecordExporter waitingLogRecordExporter =
+        new WaitingLogRecordExporter(1, CompletableResultCode.ofSuccess(), 10);
+    doThrow(new IllegalArgumentException("No export for you."))
+        .when(mockLogRecordExporter)
+        .export(anyList());
+    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
+
+    AtomicBoolean wasCalled = new AtomicBoolean(false);
+    AuditExceptionHandler exceptionHandler =
+        exception -> {
+          wasCalled.set(true);
+          assertThat(exception.logRecords).isNotNull();
+          assertThat(exception.logRecords).isNotEmpty();
+        };
+
+    AuditLogRecordProcessor processor =
+        AuditLogRecordProcessor.builder(
+                LogRecordExporter.composite(
+                    Arrays.asList(mockLogRecordExporter, waitingLogRecordExporter)),
+                logStore)
+            .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
+            .setExceptionHandler(exceptionHandler)
+            .build();
+    SdkLoggerProvider sdkLoggerProvider =
+        SdkLoggerProvider.builder().addLogRecordProcessor(processor).build();
+
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+
+    List<LogRecordData> exported = waitingLogRecordExporter.waitForExport();
+    waitOn(processor);
+
+    assertThat(wasCalled.get()).isTrue();
+
+    assertThat(exported)
+        .satisfiesExactly(logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_1));
+    waitingLogRecordExporter.reset();
+    wasCalled.set(false);
+    // Continue to export after the exception was received.
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_2);
+
+    exported = waitingLogRecordExporter.waitForExport();
+    assertThat(exported)
+        .satisfiesExactly(logRecordData -> assertThat(logRecordData).hasBody(LOG_MESSAGE_2));
+
+    assertThat(wasCalled.get()).isTrue();
+  }
+
+  @Test
+  @SuppressLogger(MultiLogRecordExporter.class)
+  void exporterThrowsException2() throws Exception {
+    doThrow(new IllegalArgumentException("No export for you."))
+        .when(mockLogRecordExporter)
+        .export(anyList());
+    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
+
+    AtomicBoolean wasCalled = new AtomicBoolean(false);
+    AuditExceptionHandler exceptionHandler =
+        exception -> {
+          wasCalled.set(true);
+          assertThat(exception.logRecords).isNotNull();
+          assertThat(exception.logRecords).isNotEmpty();
+        };
+
+    AuditLogRecordProcessor processor =
+        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore)
+            .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
+            .setExceptionHandler(exceptionHandler)
+            .build();
+    SdkLoggerProvider sdkLoggerProvider =
+        SdkLoggerProvider.builder().addLogRecordProcessor(processor).build();
+
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+
+    waitOn(processor);
+
+    assertThat(wasCalled.get()).isTrue();
+  }
+
+  @Test
+  void forceFlush() throws IOException {
+    WaitingLogRecordExporter waitingLogRecordExporter =
+        new WaitingLogRecordExporter(100, CompletableResultCode.ofSuccess(), 1);
+    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
+
+    AuditLogRecordProcessor auditLogRecordProcessor =
+        AuditLogRecordProcessor.builder(waitingLogRecordExporter, logStore)
+            .setMaxExportBatchSize(49)
+            .setScheduleDelay(10, TimeUnit.SECONDS)
+            .build();
+
+    SdkLoggerProvider sdkLoggerProvider =
+        SdkLoggerProvider.builder().addLogRecordProcessor(auditLogRecordProcessor).build();
+
+    for (int i = 0; i < 50; i++) {
+      emitLog(sdkLoggerProvider, "notExported");
+    }
+    List<LogRecordData> exported = waitingLogRecordExporter.waitForExport();
+    assertThat(exported).isNotNull();
+    assertThat(exported.size()).isEqualTo(49);
+
+    for (int i = 0; i < 50; i++) {
+      emitLog(sdkLoggerProvider, "notExported");
+    }
+    exported = waitingLogRecordExporter.waitForExport();
+    assertThat(exported).isNotNull();
+    assertThat(exported.size()).isEqualTo(49);
+
+    auditLogRecordProcessor.forceFlush().join(10, TimeUnit.SECONDS);
+    exported = waitingLogRecordExporter.getExported();
+    assertThat(exported).isNotNull();
+    assertThat(exported.size()).isEqualTo(2);
+  }
+
+  @Test
+  void ignoresNullLogs() throws IOException {
+    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
+    AuditLogRecordProcessor processor =
+        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build();
+    try {
+      assertThatCode(() -> processor.onEmit(null, null)).doesNotThrowAnyException();
+    } finally {
+      processor.shutdown();
+    }
+  }
+
+  @BeforeEach
+  void setUp() {
+    when(mockLogRecordExporter.shutdown()).thenReturn(CompletableResultCode.ofSuccess());
+    when(mockLogStore.getAll()).thenReturn(new ArrayList<>());
   }
 
   @Test
@@ -358,7 +428,8 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void shutdownPropagatesSuccess() throws IOException {
+  void shutdownPropagatesFailure() throws IOException {
+    when(mockLogRecordExporter.shutdown()).thenReturn(CompletableResultCode.ofFailure());
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
     AuditLogRecordProcessor processor =
         AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build();
@@ -368,15 +439,16 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void shutdownPropagatesFailure() throws IOException {
-    when(mockLogRecordExporter.shutdown()).thenReturn(CompletableResultCode.ofFailure());
+  void shutdownPropagatesSuccess() throws IOException {
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
     AuditLogRecordProcessor processor =
         AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build();
     CompletableResultCode result = processor.shutdown();
     result.join(1, TimeUnit.SECONDS);
-    assertThat(result.isSuccess()).isFalse();
+    assertThat(result.isSuccess()).isTrue();
   }
+
+  // Helper classes similar to BatchLogRecordProcessorTest
 
   @Test
   void toString_Valid() throws IOException {
@@ -390,66 +462,10 @@ class AuditLogRecordProcessorTest {
     assertThat(result).contains("MockLogRecordExporter");
   }
 
-  // Helper classes similar to BatchLogRecordProcessorTest
-
-  private static class CompletableLogRecordExporter implements LogRecordExporter {
-
-    private final List<CompletableResultCode> results = new ArrayList<>();
-    private final List<LogRecordData> exported = new ArrayList<>();
-    private volatile boolean succeeded;
-
-    List<LogRecordData> getExported() {
-      return exported;
+  void waitOn(AuditLogRecordProcessor processor) throws InterruptedException {
+    while (processor.getLastResultCode() == null) {
+      Thread.sleep(MAX_SCHEDULE_DELAY_MILLIS);
     }
-
-    void succeed() {
-      succeeded = true;
-      results.forEach(CompletableResultCode::succeed);
-    }
-
-    @Override
-    public CompletableResultCode export(Collection<LogRecordData> logs) {
-      exported.addAll(logs);
-      if (succeeded) {
-        return CompletableResultCode.ofSuccess();
-      }
-      CompletableResultCode result = new CompletableResultCode();
-      results.add(result);
-      return result;
-    }
-
-    @Override
-    public CompletableResultCode flush() {
-      if (succeeded) {
-        return CompletableResultCode.ofSuccess();
-      } else {
-        return CompletableResultCode.ofFailure();
-      }
-    }
-
-    @Override
-    public CompletableResultCode shutdown() {
-      return flush();
-    }
-  }
-
-  // Simple in-memory implementation for testing
-  private static class InMemoryAuditLogStore implements AuditLogStore {
-    private final List<LogRecordData> logs = new ArrayList<>();
-
-    @Override
-    public void save(LogRecordData logRecord) throws IOException {
-      logs.add(logRecord);
-    }
-
-    @Override
-    public void remove(Collection<LogRecordData> logs) {
-      this.logs.removeAll(logs);
-    }
-
-    @Override
-    public Collection<LogRecordData> getAll() {
-      return new ArrayList<>(logs);
-    }
+    processor.getLastResultCode().join(1, TimeUnit.SECONDS);
   }
 }

@@ -13,7 +13,7 @@ public interface AuditLogStore {
 
   void save(LogRecordData logRecord) throws IOException;
 
-  void remove(Collection<LogRecordData> logs);
+  void removeAll(Collection<LogRecordData> logs);
 
   Collection<LogRecordData> getAll();
 }

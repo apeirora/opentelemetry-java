@@ -9,7 +9,6 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
-import io.opentelemetry.sdk.logs.data.Body;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import io.opentelemetry.sdk.logs.export.AuditLogStore;
 import io.opentelemetry.sdk.resources.Resource;
@@ -27,14 +26,21 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /**
- * A file-based implementation of {@link AuditLogStore} that provides thread-safe concurrent reading
- * and writing of audit log records to/from the file system.
+ * This class is internal and experimental. Its APIs are unstable and can change at any time. Its
+ * APIs (or a version of them) may be promoted to the public stable API in the future, but no
+ * guarantees are made.
+ *
+ * <p>A file-based implementation of {@link AuditLogStore} that provides thread-safe concurrent
+ * reading and writing of audit log records to/from the file system.
  */
 public final class AuditLogFileStore implements AuditLogStore {
 
+  private static final Logger logger = Logger.getLogger(AuditLogFileStore.class.getName());
   private static final String LOG_FILE_EXTENSION = ".log";
   private static final String DEFAULT_LOG_FILE_NAME = "audit" + LOG_FILE_EXTENSION;
   // private static final DateTimeFormatter TIMESTAMP_FORMATTER =
@@ -109,7 +115,7 @@ public final class AuditLogFileStore implements AuditLogStore {
   }
 
   @Override
-  public void remove(Collection<LogRecordData> logs) {
+  public void removeAll(Collection<LogRecordData> logs) {
     lock.writeLock().lock();
     try {
       Set<String> recordIdsToRemove = new HashSet<>();
@@ -130,7 +136,7 @@ public final class AuditLogFileStore implements AuditLogStore {
           }
         }
       } catch (IOException e) {
-        throw new RuntimeException("Failed to read log file for removal", e);
+        logger.throwing(AuditLogFileStore.class.getName(), "removeAll", e);
       }
 
       // Write the remaining lines back to the file
@@ -142,7 +148,7 @@ public final class AuditLogFileStore implements AuditLogStore {
           writer.newLine();
         }
       } catch (IOException e) {
-        throw new RuntimeException("Failed to write log file after removal", e);
+        logger.throwing(AuditLogFileStore.class.getName(), "removeAll", e);
       }
     } finally {
       lock.writeLock().unlock();
@@ -163,7 +169,7 @@ public final class AuditLogFileStore implements AuditLogStore {
               }
             });
       } catch (IOException e) {
-        throw new RuntimeException("Failed to read log file", e);
+        logger.throwing(AuditLogFileStore.class.getName(), "removeAll", e);
       }
       return records;
     } finally {
@@ -192,7 +198,7 @@ public final class AuditLogFileStore implements AuditLogStore {
   }
 
   /** Generates a unique ID for a log record based on its content. */
-  private String generateRecordId(LogRecordData logRecord) {
+  static String generateRecordId(LogRecordData logRecord) {
     return String.valueOf(
         (logRecord.getTimestampEpochNanos()
                 + String.valueOf(logRecord.getBodyValue())
@@ -201,33 +207,34 @@ public final class AuditLogFileStore implements AuditLogStore {
   }
 
   /** Extracts the record ID from a log line. */
-  private String extractRecordIdFromLine(String line) {
+  static String extractRecordIdFromLine(String line) {
     if (line.startsWith("[") && line.contains("]")) {
       int endIndex = line.indexOf("]");
       return line.substring(1, endIndex);
     }
-    return null;
+    return "FIXME"; // FIXME: implement proper extraction based on actual log format
   }
 
   /**
    * Parses a log record from a stored line (simplified implementation). In a production system, you
    * might want to use JSON or another structured format.
    */
-  private LogRecordData parseLogRecord(String line) {
+  @Nullable
+  static LogRecordData parseLogRecord(String line) {
     try {
 
       // TODO read json from file, unmarshal it into a LogRecordData object
 
-      return createLogRecordData();
+      return createLogRecordData(line);
 
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       // If parsing fails, return null (could log this in a real implementation)
       return null;
     }
   }
 
   /** Creates a basic LogRecordData implementation for parsed records. */
-  private LogRecordData createLogRecordData() {
+  static LogRecordData createLogRecordData(String line) {
 
     return new LogRecordData() {
 
@@ -246,25 +253,25 @@ public final class AuditLogFileStore implements AuditLogStore {
       @Override
       public SpanContext getSpanContext() {
         // TODO Auto-generated method stub
-        return null;
+        return SpanContext.getInvalid();
       }
 
       @Override
       public String getSeverityText() {
         // TODO Auto-generated method stub
-        return null;
+        return line;
       }
 
       @Override
       public Severity getSeverity() {
         // TODO Auto-generated method stub
-        return null;
+        return Severity.INFO;
       }
 
       @Override
       public Resource getResource() {
         // TODO Auto-generated method stub
-        return null;
+        return Resource.empty();
       }
 
       @Override
@@ -275,21 +282,24 @@ public final class AuditLogFileStore implements AuditLogStore {
 
       @Override
       public InstrumentationScopeInfo getInstrumentationScopeInfo() {
+        InstrumentationScopeInfo scopeInfo =
+            InstrumentationScopeInfo.create("io.opentelemetry.exporter.internal.otlp.logs");
         // TODO Auto-generated method stub
-        return null;
+        return scopeInfo;
       }
 
-      @SuppressWarnings("deprecation")
       @Override
-      public Body getBody() {
+      @Deprecated
+      public io.opentelemetry.sdk.logs.data.Body getBody() {
         // TODO Auto-generated method stub
-        return null;
+        io.opentelemetry.sdk.logs.data.Body body = io.opentelemetry.sdk.logs.data.Body.string(line);
+        return body;
       }
 
       @Override
       public Attributes getAttributes() {
         // TODO Auto-generated method stub
-        return null;
+        return Attributes.builder().build();
       }
     };
   }

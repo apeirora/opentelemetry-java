@@ -6,7 +6,6 @@
 package io.opentelemetry.sdk.logs.export;
 
 import io.opentelemetry.context.Context;
-import io.opentelemetry.sdk.logs.ReadWriteLogRecord;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,19 +19,13 @@ public class AuditException extends RuntimeException {
 
   @Nullable public Context context;
 
-  @Nullable public ReadWriteLogRecord logRecord;
-
   @Nullable public Collection<LogRecordData> logRecords;
 
-  public AuditException(Throwable cause, Context context, ReadWriteLogRecord logRecord) {
+  public AuditException(
+      Throwable cause, Context context, @Nullable Collection<LogRecordData> logs) {
     super(cause);
-    this.logRecord = logRecord;
+    this.logRecords = logs;
     this.context = context;
-  }
-
-  public AuditException(@Nullable String message) {
-    super(message);
-    // TODO Auto-generated constructor stub
   }
 
   public AuditException(@Nullable String message, @Nullable Throwable cause) {
