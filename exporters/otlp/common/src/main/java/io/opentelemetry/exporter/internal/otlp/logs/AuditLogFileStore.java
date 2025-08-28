@@ -5,16 +5,16 @@
 
 package io.opentelemetry.exporter.internal.otlp.logs;
 
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.logs.Severity;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import io.opentelemetry.sdk.logs.export.AuditLogStore;
-import io.opentelemetry.sdk.resources.Resource;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,26 +40,31 @@ import javax.annotation.Nullable;
  */
 public final class AuditLogFileStore implements AuditLogStore {
 
+  private static final String DEFAULT_LOG_FILE_EXTENSION = ".log";
+
+  public static final String DEFAULT_LOG_FILE_NAME = "audit" + DEFAULT_LOG_FILE_EXTENSION;
+
   private static final Logger logger = Logger.getLogger(AuditLogFileStore.class.getName());
-  private static final String LOG_FILE_EXTENSION = ".log";
-  private static final String DEFAULT_LOG_FILE_NAME = "audit" + LOG_FILE_EXTENSION;
-  // private static final DateTimeFormatter TIMESTAMP_FORMATTER =
-  // DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-  // .withZone(ZoneId.of("UTC"));
+
+  /** Generates a unique ID for a log record based on its content. */
+  static String generateRecordId(@Nullable LogRecordData logRecord) {
+    if (logRecord == null) {
+      return "";
+    }
+    return String.valueOf(
+        (logRecord.getTimestampEpochNanos()
+                + String.valueOf(logRecord.getBodyValue())
+                + logRecord.getSeverity().toString())
+            .hashCode());
+  }
+
+  private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
   private final Path logFilePath;
-  private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
   private final Set<String> loggedRecords = ConcurrentHashMap.newKeySet();
 
-  /**
-   * Creates a new AuditLogFileStore that stores logs in the specified file.
-   *
-   * @param filePath the path to the log file
-   * @throws IOException if the file cannot be created or accessed
-   */
-  public AuditLogFileStore(String filePath) throws IOException {
-    this(Paths.get(filePath));
-  }
+  @Nullable private ObjectMapper objectMapper;
 
   /**
    * Creates a new AuditLogFileStore that stores logs in the specified path. If the path is a
@@ -86,32 +91,89 @@ public final class AuditLogFileStore implements AuditLogStore {
       Files.createFile(logFilePath);
     }
 
+    // verify that we can read and write to the file
+    if (!Files.isReadable(logFilePath)) {
+      throw new IOException("Can't read: " + logFilePath);
+    }
+    if (!Files.isWritable(logFilePath)) {
+      throw new IOException("Can't write: " + logFilePath);
+    }
+
     // Load existing log record IDs to avoid duplicates
     loadExistingRecordIds();
   }
 
-  @Override
-  public void save(LogRecordData logRecord) throws IOException {
-    String recordId = generateRecordId(logRecord);
+  /**
+   * Creates a new AuditLogFileStore that stores logs in the specified file.
+   *
+   * @param filePath the path to the log file
+   * @throws IOException if the file cannot be created or accessed
+   */
+  public AuditLogFileStore(String filePath) throws IOException {
+    this(Paths.get(filePath));
+  }
 
-    // Check if we've already logged this record
-    if (loggedRecords.contains(recordId)) {
+  @Override
+  public Collection<LogRecordData> getAll() {
+    lock.readLock().lock();
+    try {
+      Collection<LogRecordData> records = new ArrayList<>();
+      try (Stream<String> lines = Files.lines(logFilePath)) {
+        lines.forEach(
+            line -> {
+              LogRecordData record = parseLogRecord(line);
+              if (record != null) {
+                records.add(record);
+              }
+            });
+      } catch (IOException e) {
+        logger.throwing(AuditLogFileStore.class.getName(), "getAll", e);
+      }
+      return records;
+    } finally {
+      lock.readLock().unlock();
+    }
+  }
+
+  ObjectMapper json() {
+    if (objectMapper == null) {
+      objectMapper = new ObjectMapper();
+    }
+    return objectMapper;
+  }
+
+  /** Loads existing record IDs from the log file to prevent duplicates. */
+  private void loadExistingRecordIds() throws IOException {
+    if (!Files.exists(logFilePath) || Files.size(logFilePath) == 0) {
       return;
     }
 
-    lock.writeLock().lock();
-    try {
-
-      LogMarshaler logMarshaler = LogMarshaler.create(logRecord);
-
-      // write to the log file using an output stream
-      logMarshaler.writeJsonTo(
-          Files.newOutputStream(logFilePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND));
-
-      loggedRecords.add(recordId);
+    lock.readLock().lock();
+    try (Stream<String> lines = Files.lines(logFilePath)) {
+      lines.forEach(
+          line -> {
+            String recordId = generateRecordId(parseLogRecord(line));
+            if (recordId != null) {
+              loggedRecords.add(recordId);
+            }
+          });
     } finally {
-      lock.writeLock().unlock();
+      lock.readLock().unlock();
     }
+  }
+
+  /**
+   * Parses a log record from a stored line (simplified implementation). In a production system, you
+   * might want to use JSON or another structured format.
+   */
+  @Nullable
+  LogRecordData parseLogRecord(String line) {
+    try {
+      return json().readValue(line, JsonLogRecordData.class);
+    } catch (JsonProcessingException e) {
+      logger.throwing(AuditLogFileStore.class.getName(), "parseLogRecord", e);
+    }
+    return null;
   }
 
   @Override
@@ -128,7 +190,7 @@ public final class AuditLogFileStore implements AuditLogStore {
       try (BufferedReader reader = Files.newBufferedReader(logFilePath)) {
         String line;
         while ((line = reader.readLine()) != null) {
-          String recordId = extractRecordIdFromLine(line);
+          String recordId = generateRecordId(parseLogRecord(line));
           if (recordId == null || !recordIdsToRemove.contains(recordId)) {
             remainingLines.add(line);
           } else {
@@ -156,151 +218,24 @@ public final class AuditLogFileStore implements AuditLogStore {
   }
 
   @Override
-  public Collection<LogRecordData> getAll() {
-    lock.readLock().lock();
-    try {
-      Collection<LogRecordData> records = new ArrayList<>();
-      try (Stream<String> lines = Files.lines(logFilePath)) {
-        lines.forEach(
-            line -> {
-              LogRecordData record = parseLogRecord(line);
-              if (record != null) {
-                records.add(record);
-              }
-            });
-      } catch (IOException e) {
-        logger.throwing(AuditLogFileStore.class.getName(), "removeAll", e);
-      }
-      return records;
-    } finally {
-      lock.readLock().unlock();
-    }
-  }
+  public void save(LogRecordData logRecord) throws IOException {
+    String recordId = generateRecordId(logRecord);
 
-  /** Loads existing record IDs from the log file to prevent duplicates. */
-  private void loadExistingRecordIds() throws IOException {
-    if (!Files.exists(logFilePath) || Files.size(logFilePath) == 0) {
+    // Check if we've already logged this record
+    if (loggedRecords.contains(recordId)) {
       return;
     }
 
-    lock.readLock().lock();
-    try (Stream<String> lines = Files.lines(logFilePath)) {
-      lines.forEach(
-          line -> {
-            String recordId = extractRecordIdFromLine(line);
-            if (recordId != null) {
-              loggedRecords.add(recordId);
-            }
-          });
+    lock.writeLock().lock();
+    try (OutputStream out =
+        Files.newOutputStream(logFilePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      LogMarshaler.create(logRecord).writeJsonTo(baos); // closes the stream!
+      out.write(baos.toByteArray());
+      out.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+      loggedRecords.add(recordId);
     } finally {
-      lock.readLock().unlock();
+      lock.writeLock().unlock();
     }
-  }
-
-  /** Generates a unique ID for a log record based on its content. */
-  static String generateRecordId(LogRecordData logRecord) {
-    return String.valueOf(
-        (logRecord.getTimestampEpochNanos()
-                + String.valueOf(logRecord.getBodyValue())
-                + logRecord.getSeverity().toString())
-            .hashCode());
-  }
-
-  /** Extracts the record ID from a log line. */
-  static String extractRecordIdFromLine(String line) {
-    if (line.startsWith("[") && line.contains("]")) {
-      int endIndex = line.indexOf("]");
-      return line.substring(1, endIndex);
-    }
-    return "FIXME"; // FIXME: implement proper extraction based on actual log format
-  }
-
-  /**
-   * Parses a log record from a stored line (simplified implementation). In a production system, you
-   * might want to use JSON or another structured format.
-   */
-  @Nullable
-  static LogRecordData parseLogRecord(String line) {
-    try {
-
-      // TODO read json from file, unmarshal it into a LogRecordData object
-
-      return createLogRecordData(line);
-
-    } catch (RuntimeException e) {
-      // If parsing fails, return null (could log this in a real implementation)
-      return null;
-    }
-  }
-
-  /** Creates a basic LogRecordData implementation for parsed records. */
-  static LogRecordData createLogRecordData(String line) {
-
-    return new LogRecordData() {
-
-      @Override
-      public int getTotalAttributeCount() {
-        // TODO Auto-generated method stub
-        return 0;
-      }
-
-      @Override
-      public long getTimestampEpochNanos() {
-        // TODO Auto-generated method stub
-        return 0;
-      }
-
-      @Override
-      public SpanContext getSpanContext() {
-        // TODO Auto-generated method stub
-        return SpanContext.getInvalid();
-      }
-
-      @Override
-      public String getSeverityText() {
-        // TODO Auto-generated method stub
-        return line;
-      }
-
-      @Override
-      public Severity getSeverity() {
-        // TODO Auto-generated method stub
-        return Severity.INFO;
-      }
-
-      @Override
-      public Resource getResource() {
-        // TODO Auto-generated method stub
-        return Resource.empty();
-      }
-
-      @Override
-      public long getObservedTimestampEpochNanos() {
-        // TODO Auto-generated method stub
-        return 0;
-      }
-
-      @Override
-      public InstrumentationScopeInfo getInstrumentationScopeInfo() {
-        InstrumentationScopeInfo scopeInfo =
-            InstrumentationScopeInfo.create("io.opentelemetry.exporter.internal.otlp.logs");
-        // TODO Auto-generated method stub
-        return scopeInfo;
-      }
-
-      @Override
-      @Deprecated
-      public io.opentelemetry.sdk.logs.data.Body getBody() {
-        // TODO Auto-generated method stub
-        io.opentelemetry.sdk.logs.data.Body body = io.opentelemetry.sdk.logs.data.Body.string(line);
-        return body;
-      }
-
-      @Override
-      public Attributes getAttributes() {
-        // TODO Auto-generated method stub
-        return Attributes.builder().build();
-      }
-    };
   }
 }
