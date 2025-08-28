@@ -13,9 +13,10 @@ target
 *.iml
 
 # Eclipse
+.classpath
+.project
+.settings
 bin
-.apt_generated
-.apt_generated_tests
 
 # NetBeans
 /.nb-gradle
