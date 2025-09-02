@@ -301,7 +301,6 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  @SuppressLogger(MultiLogRecordExporter.class)
   void exporterThrowsException2() throws Exception {
     doThrow(new IllegalArgumentException("No export for you."))
         .when(mockLogRecordExporter)
@@ -329,6 +328,81 @@ class AuditLogRecordProcessorTest {
     waitOn(processor);
 
     assertThat(wasCalled.get()).isTrue();
+  }
+
+  @Test
+  void testRetry() throws Exception {
+    when(mockLogRecordExporter.export(anyList()))
+        .thenThrow(new IllegalArgumentException("No export for you.")) // first call, fails
+        .thenThrow(new IllegalArgumentException("No export for you again.")) // second call, fails
+        .thenReturn(CompletableResultCode.ofSuccess());
+
+    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
+
+    AtomicBoolean wasCalled = new AtomicBoolean(false);
+    AuditExceptionHandler exceptionHandler =
+        exception -> {
+          wasCalled.set(true);
+          assertThat(exception.logRecords).isNotNull();
+          assertThat(exception.logRecords).isNotEmpty();
+        };
+
+    AuditLogRecordProcessor processor =
+        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore)
+            .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
+            .setExceptionHandler(exceptionHandler)
+            .setWaitOnExport(true) // enable waiting on export to ensure retries are attempted
+            .setMaxExportBatchSize(1) // ensure each log is exported individually
+            .setMaxRetryAttempts(3) // set max retry attempts
+            .setMaxRetryDelay(1, TimeUnit.MILLISECONDS) // set retry delay
+            .build();
+    SdkLoggerProvider sdkLoggerProvider =
+        SdkLoggerProvider.builder().addLogRecordProcessor(processor).build();
+
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+
+    waitOn(processor);
+
+    assertThat(processor.getLastResultCode().isDone()).isTrue();
+    assertThat(processor.getLastResultCode().isSuccess()).isTrue();
+    assertThat(wasCalled.get()).isFalse(); // should be false as the third attempt should succeed
+  }
+
+  @Test
+  void testRetryFails() throws Exception {
+    doThrow(new IllegalArgumentException("No export for you."))
+        .when(mockLogRecordExporter)
+        .export(anyList());
+
+    InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
+
+    AtomicBoolean wasCalled = new AtomicBoolean(false);
+    AuditExceptionHandler exceptionHandler =
+        exception -> {
+          wasCalled.set(true);
+          assertThat(exception.logRecords).isNotNull();
+          assertThat(exception.logRecords).isNotEmpty();
+        };
+
+    AuditLogRecordProcessor processor =
+        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore)
+            .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
+            .setExceptionHandler(exceptionHandler)
+            .setWaitOnExport(true) // enable waiting on export to ensure retries are attempted
+            .setMaxExportBatchSize(1) // ensure each log is exported individually
+            .setMaxRetryAttempts(1) // set max retry attempts
+            .setMaxRetryDelay(1, TimeUnit.MILLISECONDS)
+            .build();
+    SdkLoggerProvider sdkLoggerProvider =
+        SdkLoggerProvider.builder().addLogRecordProcessor(processor).build();
+
+    emitLog(sdkLoggerProvider, LOG_MESSAGE_1);
+
+    waitOn(processor);
+
+    assertThat(wasCalled.get()).isTrue(); // should be true as all retry attempts fail
+    assertThat(processor.getLastResultCode().isDone()).isTrue();
+    assertThat(processor.getLastResultCode().isSuccess()).isFalse();
   }
 
   @Test

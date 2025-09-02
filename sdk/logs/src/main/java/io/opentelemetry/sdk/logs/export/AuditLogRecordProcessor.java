@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -21,9 +22,23 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 
-/** An implementation of {@link LogRecordProcessor} that processes logs for auditing purposes. */
+/**
+ * An implementation of {@link LogRecordProcessor} that processes logs for auditing purposes. It has
+ * an automatic retry mechanism implemented, in case the exporter takes longer or throws exceptions.
+ * Internally it uses a priority (-> LogLevel) queue for the log messages and the given {@link
+ * AuditLogStore} for persistence, which holds the logs until they are successfully exported. At
+ * startup, it loads all previously persisted logs from the {@link AuditLogStore} and adds them to
+ * the queue for processing. Logs with higher severity are processed first. The processor
+ * periodically checks the queue and exports logs in batches, regardless of the queue size. If the
+ * queue reaches a certain size, it triggers an immediate export. If an export fails, it retries
+ * exporting the logs with exponential backoff. When the maximum number of retry attempts is
+ * reached, it either throws an {@link AuditException} or calls the provided {@link
+ * AuditExceptionHandler}.
+ */
 public final class AuditLogRecordProcessor implements LogRecordProcessor {
 
   /**
@@ -62,6 +77,27 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
   /** The timeout for exporting logs in nanoseconds. */
   private final long timeout;
 
+  /** Maximum number of retry attempts for failed exports. */
+  private final int maxRetryAttempts;
+
+  /** Initial retry delay in milliseconds. */
+  private final long initialRetryDelayMillis;
+
+  /** Maximum retry delay in milliseconds to cap exponential backoff. */
+  private final long maxRetryDelayMillis;
+
+  /** Retry multiplier for exponential backoff. */
+  private final double retryMultiplier;
+
+  /** Current retry attempt counter. */
+  private final AtomicInteger currentRetryAttempt = new AtomicInteger(0);
+
+  /** Last retry timestamp to implement backpressure. */
+  private final AtomicLong lastRetryTimestamp = new AtomicLong(0);
+
+  /** Whether to wait for each export try to complete. */
+  private final boolean waitOnExport;
+
   /**
    * Creates a new AuditLogRecordProcessor with the given parameters.
    *
@@ -71,6 +107,11 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
    * @param scheduleDelayNanos the delay in nanoseconds between periodic exports.
    * @param maxExportBatchSize the maximum number of logs to export in a single batch.
    * @param exporterTimeoutNanos the timeout for exporting logs in nanoseconds.
+   * @param maxRetryAttempts the maximum number of retry attempts for failed exports.
+   * @param initialRetryDelayMillis the initial retry delay in milliseconds.
+   * @param maxRetryDelayMillis the maximum retry delay in milliseconds.
+   * @param retryMultiplier the retry multiplier for exponential backoff.
+   * @param waitOnExport whether to wait for the export to complete.
    */
   AuditLogRecordProcessor(
       LogRecordExporter logRecordExporter,
@@ -78,11 +119,21 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
       AuditLogStore logStore,
       long scheduleDelayNanos,
       int maxExportBatchSize,
-      long exporterTimeoutNanos) {
+      long exporterTimeoutNanos,
+      int maxRetryAttempts,
+      long initialRetryDelayMillis,
+      long maxRetryDelayMillis,
+      double retryMultiplier,
+      boolean waitOnExport) {
     exporter = logRecordExporter;
     size = maxExportBatchSize;
     timeout = exporterTimeoutNanos;
     handler = exceptionHandler;
+    this.maxRetryAttempts = maxRetryAttempts;
+    this.initialRetryDelayMillis = initialRetryDelayMillis;
+    this.maxRetryDelayMillis = maxRetryDelayMillis;
+    this.retryMultiplier = retryMultiplier;
+    this.waitOnExport = waitOnExport;
     queue =
         new PriorityBlockingQueue<>(
             maxExportBatchSize,
@@ -114,87 +165,159 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
 
   /**
    * Exports logs from the queue to the exporter. If the queue is empty, it does nothing. If the
-   * export fails, it retries exporting logs and handles exceptions using the provided handler.
+   * export fails, it retries exporting logs with exponential backoff and handles exceptions using
+   * the provided handler.
    */
   void exportLogs() {
     if (queue.isEmpty()) {
       return;
     }
+
+    // Check if we're in a backpressure period
+    long currentTime = System.currentTimeMillis();
+    if (currentRetryAttempt.get() > 0) {
+      long timeSinceLastRetry = currentTime - lastRetryTimestamp.get();
+      long requiredDelay = calculateRetryDelay(currentRetryAttempt.get());
+
+      if (timeSinceLastRetry < requiredDelay) {
+        // Still in backpressure period, skip this export attempt
+        return;
+      }
+    }
+
     Collection<CompletableResultCode> results = new ArrayList<>();
-    Collection<LogRecordData> failedExportlogs = new ArrayList<>();
-    // AuditException auditException = new AuditException("Exporting logs failed");
+    Collection<LogRecordData> allFailedLogs = new ArrayList<>();
+
     while (!queue.isEmpty()) {
       // Create a collection of LogRecordData from the queue with a maximum size
-      // TODO: comes with newer Java version: Collection<LogRecordData> logList =
-      // queue.stream().limit(size).toList();
-
       Object[] arr = queue.stream().limit(size).toArray();
       Collection<LogRecordData> logs = new ArrayList<>(arr.length);
       for (Object o : arr) {
         logs.add((LogRecordData) o);
       }
 
-      try {
-        CompletableResultCode export = exporter.export(logs);
-        lastResultCode = export;
+      CompletableResultCode export = tryExport(logs);
+      // lastResultCode = export;
+      results.add(export);
 
-        export.whenComplete(
-            () -> {
-              if (export.isSuccess()) {
-                persistency.removeAll(logs);
-              } else {
-                failedExportlogs.addAll(logs);
+      export.whenComplete(
+          () -> {
+            if (export.isSuccess()) {
+              // Reset retry counter on successful export
+              currentRetryAttempt.set(0);
+              lastRetryTimestamp.set(0);
+              persistency.removeAll(logs);
+            } else {
+              allFailedLogs.addAll(logs);
+              // if (handler != null) {
+              // handler.handle(new AuditException("Export failed", export.getFailureThrowable(),
+              // logs));
+              // }
+            }
+          });
 
-                Throwable exportFailure =
-                    export.getFailureThrowable(); // TODO retry exporting logs - here (A)?
-                if (exportFailure != null) {
-                  if (exportFailure instanceof RuntimeException) {
-                    throw (RuntimeException) exportFailure;
-                  }
-                  throw new AuditException(exportFailure.getMessage(), exportFailure, logs);
-                }
-                // TODO retry exporting logs
-                // auditException.because(export.getFailureThrowable());
-              }
-            });
-        // results.add(export.join(timeout, TimeUnit.NANOSECONDS));
-        results.add(export); // don't block here, let the export complete asynchronously
-
-      } catch (AuditException e) {
-        results.add(CompletableResultCode.ofExceptionalFailure(e));
-        if (handler != null) {
-          handler.handle(e);
-        } else {
-          throw e;
-        }
-
-      } catch (RuntimeException e) {
-        // TODO retry exporting logs - or here (B)?
-        results.add(CompletableResultCode.ofExceptionalFailure(e));
-
-        // queue.clear(); // FIXME: Clear the queue to avoid reprocessing the same logs
-        if (handler != null) {
-          handler.handle(new AuditException(e.getMessage(), e, logs));
-        } else {
-          throw new AuditException(e.getMessage(), e, logs);
-        }
-      } finally {
-        queue.removeAll(logs);
-      }
+      // Remove logs from queue regardless of success/failure to prevent infinite loops
+      queue.removeAll(logs);
     }
 
     CompletableResultCode all = CompletableResultCode.ofAll(results);
-    lastResultCode = all;
-    // all.join(timeout * results.size(), TimeUnit.NANOSECONDS);
+    if (waitOnExport) {
+      all.join(timeout * results.size(), TimeUnit.NANOSECONDS);
+    }
+
     if (all.isDone() && !all.isSuccess()) {
-      Throwable e = all.getFailureThrowable();
-      String msg = e != null ? e.getMessage() : "Exporting logs failed";
-      if (handler != null) {
-        handler.handle(new AuditException(msg, e, failedExportlogs));
-      } else {
-        // If no handler is provided, we throw an exception
-        throw new AuditException(msg, e, failedExportlogs);
+      if (waitOnExport) {
+        // Export failed, prepare for retry if attempts remain
+        if (currentRetryAttempt.getAndAdd(1) < maxRetryAttempts) {
+          lastRetryTimestamp.set(System.currentTimeMillis());
+          queue.addAll(allFailedLogs);
+          try {
+            Thread.sleep(calculateRetryDelay(currentRetryAttempt.get()));
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          exportLogs(); // retry exporting failed logs
+          return;
+        }
       }
+      // only, when we wait on export, we can really retry
+      handleExportFailure(allFailedLogs, all.getFailureThrowable());
+    }
+
+    lastResultCode = all;
+  }
+
+  /**
+   * Exports logs with retry logic and exponential backoff.
+   *
+   * @param logs the collection of logs to export
+   * @return CompletableResultCode representing the final result after all retry attempts
+   */
+  private CompletableResultCode tryExport(Collection<LogRecordData> logs) {
+    CompletableResultCode lastResult = CompletableResultCode.ofFailure();
+    try {
+      lastResult = exporter.export(logs);
+      // Wait for the export to complete with timeout
+      if (waitOnExport) {
+        lastResult.join(timeout, TimeUnit.NANOSECONDS);
+      }
+    } catch (RuntimeException e) {
+      return CompletableResultCode.ofExceptionalFailure(e);
+    }
+    return lastResult;
+  }
+
+  /**
+   * Calculates the retry delay using exponential backoff with jitter.
+   *
+   * @param attemptNumber the current attempt number (1-based)
+   * @return delay in milliseconds
+   */
+  private long calculateRetryDelay(int attemptNumber) {
+    long delay = (long) (initialRetryDelayMillis * Math.pow(retryMultiplier, attemptNumber - 1));
+
+    // Cap the delay to maximum
+    delay = Math.min(delay, maxRetryDelayMillis);
+
+    // Add jitter to prevent thundering herd (±25% random variation)
+    double jitter = 0.25 * delay * (Math.random() - 0.5);
+    delay += (long) jitter;
+
+    return Math.max(delay, 0); // Ensure non-negative delay
+  }
+
+  /**
+   * Handles export failure by updating retry state and potentially throwing exceptions.
+   *
+   * @param failedLogs the logs that failed to export
+   * @param cause the cause of the failure
+   */
+  private void handleExportFailure(
+      Collection<LogRecordData> failedLogs, @Nullable Throwable cause) {
+    if (!waitOnExport && handler != null) {
+      handler.handle(new AuditException("Export failed", cause, failedLogs));
+      return;
+    }
+    if (currentRetryAttempt.get() < maxRetryAttempts) {
+      // If retries haven't been exhausted, the retry logic will handle the next attempt
+      return;
+    }
+
+    // Max retries exceeded, reset counter and handle as final failure
+    currentRetryAttempt.set(0);
+    lastRetryTimestamp.set(0);
+
+    String message =
+        String.format(
+            Locale.ENGLISH,
+            "Export failed after %d retry attempts. Last error: %s",
+            maxRetryAttempts,
+            cause != null ? cause.getMessage() : "Unknown error");
+
+    if (handler != null) {
+      handler.handle(new AuditException(message, cause, failedLogs));
+    } else {
+      throw new AuditException(message, cause, failedLogs);
     }
   }
 
