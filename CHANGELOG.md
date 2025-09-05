@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## Version 1.53.0 (2025-08-08)
+
+### SDK
+
+* File based config will log the wrong file format, when applicable.
+  ([#7498](https://github.com/open-telemetry/opentelemetry-java/pull/7498))
+
+#### Exporters
+
+* Change `okhttp` dependency to `okhttp-jvm`, which fixes missing class failures in
+  transitive dependencies.
+  ([#7517](https://github.com/open-telemetry/opentelemetry-java/pull/7517))
+
 ## Version 1.52.0 (2025-07-11)
 
 ### API
@@ -2745,7 +2758,7 @@ should not be many. Thanks for bearing with us on this.
   This provides improved ergonomics and control around autoconfigure customization.
 - Added experimental support for enabling OTLP retry support for the `grpc` exporters. If enabled
   via `otel.experimental.exporter.otlp.retry.enabled`,
-  a [default retry policy](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#otlp-exporter-retry)
+  a [default retry policy](https://opentelemetry.io/docs/languages/java/configuration/#properties-exporters)
   will be used.
 - The metric export interval of `PeriodicMetricReader` is now configured
   via `otel.metric.export.interval`. The existing `otel.imr.export.interval` property has been

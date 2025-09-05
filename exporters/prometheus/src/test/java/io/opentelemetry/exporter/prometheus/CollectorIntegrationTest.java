@@ -60,7 +60,8 @@ import org.testcontainers.utility.DockerImageName;
 class CollectorIntegrationTest {
 
   private static final String COLLECTOR_IMAGE =
-      "ghcr.io/open-telemetry/opentelemetry-java/otel-collector";
+      "otel/opentelemetry-collector-contrib:0.133.0@sha256:98274b756324abdb2473fa0c898247a246091e861e61d1548f9be483198eecea";
+
   private static final Integer COLLECTOR_HEALTH_CHECK_PORT = 13133;
 
   private static int prometheusPort;
@@ -179,12 +180,13 @@ class CollectorIntegrationTest {
     NumberDataPoint requestTotalDataPoint = requestTotalSum.getDataPoints(0);
     assertThat(requestTotalDataPoint.getAsDouble()).isEqualTo(3.0);
     assertThat(requestTotalDataPoint.getAttributesList())
-        .containsExactlyInAnyOrder(
-            stringKeyValue("animal", "bear"),
-            // Scope name and version are serialized as attributes to disambiguate metrics with the
-            // same name in different scopes
-            stringKeyValue("otel_scope_name", "test"),
-            stringKeyValue("otel_scope_version", "1.0.0"));
+        .containsExactlyInAnyOrder(stringKeyValue("animal", "bear"));
+    // Scope name and version are serialized as attributes to disambiguate metrics with the
+    // same name in different scopes
+    // TODO: potentially add these back or remove entirely, see
+    // https://github.com/open-telemetry/opentelemetry-java/issues/7544
+    // stringKeyValue("otel_scope_name", "test"),
+    // stringKeyValue("otel_scope_version", "1.0.0"));
   }
 
   private static KeyValue stringKeyValue(String key, String value) {
