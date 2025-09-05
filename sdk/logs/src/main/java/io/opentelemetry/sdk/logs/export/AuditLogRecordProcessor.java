@@ -7,6 +7,7 @@ package io.opentelemetry.sdk.logs.export;
 
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.common.export.RetryPolicy;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.ReadWriteLogRecord;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
@@ -77,17 +78,8 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
   /** The timeout for exporting logs in nanoseconds. */
   private final long timeout;
 
-  /** Maximum number of retry attempts for failed exports. */
-  private final int maxRetryAttempts;
-
-  /** Initial retry delay in milliseconds. */
-  private final long initialRetryDelayMillis;
-
-  /** Maximum retry delay in milliseconds to cap exponential backoff. */
-  private final long maxRetryDelayMillis;
-
-  /** Retry multiplier for exponential backoff. */
-  private final double retryMultiplier;
+  /** The retry policy for handling failed exports. */
+  private final RetryPolicy retryPolicy;
 
   /** Current retry attempt counter. */
   private final AtomicInteger currentRetryAttempt = new AtomicInteger(0);
@@ -107,10 +99,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
    * @param scheduleDelayNanos the delay in nanoseconds between periodic exports.
    * @param maxExportBatchSize the maximum number of logs to export in a single batch.
    * @param exporterTimeoutNanos the timeout for exporting logs in nanoseconds.
-   * @param maxRetryAttempts the maximum number of retry attempts for failed exports.
-   * @param initialRetryDelayMillis the initial retry delay in milliseconds.
-   * @param maxRetryDelayMillis the maximum retry delay in milliseconds.
-   * @param retryMultiplier the retry multiplier for exponential backoff.
+   * @param retryPolicy the retry policy for handling failed exports.
    * @param waitOnExport whether to wait for the export to complete.
    */
   AuditLogRecordProcessor(
@@ -120,19 +109,13 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
       long scheduleDelayNanos,
       int maxExportBatchSize,
       long exporterTimeoutNanos,
-      int maxRetryAttempts,
-      long initialRetryDelayMillis,
-      long maxRetryDelayMillis,
-      double retryMultiplier,
+      RetryPolicy retryPolicy,
       boolean waitOnExport) {
     exporter = logRecordExporter;
     size = maxExportBatchSize;
     timeout = exporterTimeoutNanos;
     handler = exceptionHandler;
-    this.maxRetryAttempts = maxRetryAttempts;
-    this.initialRetryDelayMillis = initialRetryDelayMillis;
-    this.maxRetryDelayMillis = maxRetryDelayMillis;
-    this.retryMultiplier = retryMultiplier;
+    this.retryPolicy = retryPolicy;
     this.waitOnExport = waitOnExport;
     queue =
         new PriorityBlockingQueue<>(
@@ -228,7 +211,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
     if (all.isDone() && !all.isSuccess()) {
       if (waitOnExport) {
         // Export failed, prepare for retry if attempts remain
-        if (currentRetryAttempt.getAndAdd(1) < maxRetryAttempts) {
+        if (currentRetryAttempt.getAndAdd(1) < retryPolicy.getMaxAttempts()) {
           lastRetryTimestamp.set(System.currentTimeMillis());
           queue.addAll(allFailedLogs);
           try {
@@ -274,10 +257,13 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
    * @return delay in milliseconds
    */
   private long calculateRetryDelay(int attemptNumber) {
-    long delay = (long) (initialRetryDelayMillis * Math.pow(retryMultiplier, attemptNumber - 1));
+    long delay =
+        (long)
+            (retryPolicy.getInitialBackoff().toMillis()
+                * Math.pow(retryPolicy.getBackoffMultiplier(), attemptNumber - 1));
 
     // Cap the delay to maximum
-    delay = Math.min(delay, maxRetryDelayMillis);
+    delay = Math.min(delay, retryPolicy.getMaxBackoff().toMillis());
 
     // Add jitter to prevent thundering herd (±25% random variation)
     double jitter = 0.25 * delay * (Math.random() - 0.5);
@@ -298,7 +284,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
       handler.handle(new AuditException("Export failed", cause, failedLogs));
       return;
     }
-    if (currentRetryAttempt.get() < maxRetryAttempts) {
+    if (currentRetryAttempt.get() < retryPolicy.getMaxAttempts()) {
       // If retries haven't been exhausted, the retry logic will handle the next attempt
       return;
     }
@@ -311,7 +297,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
         String.format(
             Locale.ENGLISH,
             "Export failed after %d retry attempts. Last error: %s",
-            maxRetryAttempts,
+            retryPolicy.getMaxAttempts(),
             cause != null ? cause.getMessage() : "Unknown error");
 
     if (handler != null) {
@@ -425,6 +411,8 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
     builder.append(size);
     builder.append(", timeout=");
     builder.append(timeout);
+    builder.append(", retryPolicy=");
+    builder.append(retryPolicy);
     builder.append(", persistency=");
     builder.append(persistency);
     builder.append("]");

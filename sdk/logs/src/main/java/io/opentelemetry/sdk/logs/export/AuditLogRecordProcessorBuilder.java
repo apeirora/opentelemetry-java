@@ -8,12 +8,13 @@ package io.opentelemetry.sdk.logs.export;
 import static io.opentelemetry.api.internal.Utils.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import io.opentelemetry.sdk.common.export.RetryPolicy;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Builder class for {@link BatchLogRecordProcessor}.
+ * Builder class for {@link AuditLogRecordProcessor}.
  *
  * @since 1.27.0
  */
@@ -22,15 +23,7 @@ public final class AuditLogRecordProcessorBuilder {
   // Visible for testing
   public static final int DEFAULT_EXPORT_TIMEOUT_MILLIS = 30_000;
   // Visible for testing
-  public static final long DEFAULT_INITIAL_RETRY_DELAY_MILLIS = 1000;
-  // Visible for testing
   public static final int DEFAULT_MAX_EXPORT_BATCH_SIZE = 512;
-  // Visible for testing
-  public static final int DEFAULT_MAX_RETRY_ATTEMPTS = 3;
-  // Visible for testing
-  public static final long DEFAULT_MAX_RETRY_DELAY_MILLIS = 30_000;
-  // Visible for testing
-  public static final double DEFAULT_RETRY_MULTIPLIER = 2.0;
   // Visible for testing
   public static final long DEFAULT_SCHEDULE_DELAY_MILLIS = 1000;
 
@@ -38,19 +31,13 @@ public final class AuditLogRecordProcessorBuilder {
 
   private long exporterTimeoutNanos = TimeUnit.MILLISECONDS.toNanos(DEFAULT_EXPORT_TIMEOUT_MILLIS);
 
-  private long initialRetryDelayMillis = DEFAULT_INITIAL_RETRY_DELAY_MILLIS;
-
   @Nonnull private final LogRecordExporter logRecordExporter;
 
   @Nonnull private final AuditLogStore logStore;
 
   private int maxExportBatchSize = DEFAULT_MAX_EXPORT_BATCH_SIZE;
 
-  private int maxRetryAttempts = DEFAULT_MAX_RETRY_ATTEMPTS;
-
-  private long maxRetryDelayMillis = DEFAULT_MAX_RETRY_DELAY_MILLIS;
-
-  private double retryMultiplier = DEFAULT_RETRY_MULTIPLIER;
+  private RetryPolicy retryPolicy = RetryPolicy.getDefault();
 
   private long scheduleDelayNanos = TimeUnit.MILLISECONDS.toNanos(DEFAULT_SCHEDULE_DELAY_MILLIS);
 
@@ -76,10 +63,7 @@ public final class AuditLogRecordProcessorBuilder {
         scheduleDelayNanos,
         maxExportBatchSize,
         exporterTimeoutNanos,
-        maxRetryAttempts,
-        initialRetryDelayMillis,
-        maxRetryDelayMillis,
-        retryMultiplier,
+        retryPolicy,
         waitOnExport);
   }
 
@@ -93,11 +77,6 @@ public final class AuditLogRecordProcessorBuilder {
     return exporterTimeoutNanos;
   }
 
-  // Visible for testing
-  long getInitialRetryDelayMillis() {
-    return initialRetryDelayMillis;
-  }
-
   AuditLogStore getLogStore() {
     return logStore;
   }
@@ -108,18 +87,8 @@ public final class AuditLogRecordProcessorBuilder {
   }
 
   // Visible for testing
-  int getMaxRetryAttempts() {
-    return maxRetryAttempts;
-  }
-
-  // Visible for testing
-  long getMaxRetryDelayMillis() {
-    return maxRetryDelayMillis;
-  }
-
-  // Visible for testing
-  double getRetryMultiplier() {
-    return retryMultiplier;
+  RetryPolicy getRetryPolicy() {
+    return retryPolicy;
   }
 
   // Visible for testing
@@ -150,18 +119,6 @@ public final class AuditLogRecordProcessorBuilder {
   }
 
   /**
-   * Sets the initial delay in milliseconds before the first retry attempt. If unset, defaults to
-   * {@value DEFAULT_INITIAL_RETRY_DELAY_MILLIS}ms.
-   */
-  public AuditLogRecordProcessorBuilder setInitialRetryDelay(
-      long initialRetryDelay, TimeUnit unit) {
-    requireNonNull(unit, "unit");
-    checkArgument(initialRetryDelay >= 0, "initialRetryDelay must be non-negative");
-    this.initialRetryDelayMillis = unit.toMillis(initialRetryDelay);
-    return this;
-  }
-
-  /**
    * Sets the maximum batch size for every export. This must be smaller or equal to {@code
    * maxQueueSize}.
    *
@@ -178,33 +135,15 @@ public final class AuditLogRecordProcessorBuilder {
   }
 
   /**
-   * Sets the maximum number of retry attempts for failed exports. If unset, defaults to {@value
-   * DEFAULT_MAX_RETRY_ATTEMPTS}.
+   * Sets the retry policy for failed exports. If unset, defaults to {@link
+   * RetryPolicy#getDefault()}.
+   *
+   * @param retryPolicy the retry policy to use for failed exports
+   * @return this
    */
-  public AuditLogRecordProcessorBuilder setMaxRetryAttempts(int maxRetryAttempts) {
-    checkArgument(maxRetryAttempts >= 0, "maxRetryAttempts must be non-negative.");
-    this.maxRetryAttempts = maxRetryAttempts;
-    return this;
-  }
-
-  /**
-   * Sets the maximum delay in milliseconds between retry attempts. If unset, defaults to {@value
-   * DEFAULT_MAX_RETRY_DELAY_MILLIS}ms.
-   */
-  public AuditLogRecordProcessorBuilder setMaxRetryDelay(long maxRetryDelay, TimeUnit unit) {
-    requireNonNull(unit, "unit");
-    checkArgument(maxRetryDelay >= 0, "maxRetryDelay must be non-negative");
-    this.maxRetryDelayMillis = unit.toMillis(maxRetryDelay);
-    return this;
-  }
-
-  /**
-   * Sets the multiplier for increasing the retry delay after each failed attempt. If unset,
-   * defaults to {@value DEFAULT_RETRY_MULTIPLIER}.
-   */
-  public AuditLogRecordProcessorBuilder setRetryMultiplier(double retryMultiplier) {
-    checkArgument(retryMultiplier > 1.0, "retryMultiplier must be greater than 1.0");
-    this.retryMultiplier = retryMultiplier;
+  public AuditLogRecordProcessorBuilder setRetryPolicy(@Nonnull RetryPolicy retryPolicy) {
+    requireNonNull(retryPolicy, "retryPolicy");
+    this.retryPolicy = retryPolicy;
     return this;
   }
 

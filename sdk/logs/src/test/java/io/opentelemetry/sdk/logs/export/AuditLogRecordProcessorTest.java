@@ -19,11 +19,13 @@ import static org.mockito.Mockito.when;
 
 import io.opentelemetry.internal.testing.slf4j.SuppressLogger;
 import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.common.export.RetryPolicy;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessorTest.CompletableLogRecordExporter;
 import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessorTest.WaitingLogRecordExporter;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -87,6 +89,7 @@ class AuditLogRecordProcessorTest {
         .isEqualTo(
             TimeUnit.MILLISECONDS.toNanos(
                 AuditLogRecordProcessorBuilder.DEFAULT_EXPORT_TIMEOUT_MILLIS));
+    assertThat(builder.getRetryPolicy()).isEqualTo(RetryPolicy.getDefault());
   }
 
   @Test
@@ -121,6 +124,12 @@ class AuditLogRecordProcessorTest {
                     .setMaxExportBatchSize(0))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("maxExportBatchSize must be positive.");
+    assertThatThrownBy(
+            () ->
+                AuditLogRecordProcessor.builder(mockLogRecordExporter, mockLogStore)
+                    .setRetryPolicy(null))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage("retryPolicy");
   }
 
   private void emitLog(SdkLoggerProvider sdkLoggerProvider, String message) {
@@ -335,14 +344,20 @@ class AuditLogRecordProcessorTest {
           assertThat(exception.logRecords).isNotEmpty();
         };
 
+    RetryPolicy retryPolicy =
+        RetryPolicy.builder()
+            .setMaxAttempts(3)
+            .setInitialBackoff(Duration.ofMillis(1))
+            .setMaxBackoff(Duration.ofMillis(1))
+            .build();
+
     AuditLogRecordProcessor processor =
         AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore)
             .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
             .setExceptionHandler(exceptionHandler)
             .setWaitOnExport(true) // enable waiting on export to ensure retries are attempted
             .setMaxExportBatchSize(1) // ensure each log is exported individually
-            .setMaxRetryAttempts(3) // set max retry attempts
-            .setMaxRetryDelay(1, TimeUnit.MILLISECONDS) // set retry delay
+            .setRetryPolicy(retryPolicy)
             .build();
     SdkLoggerProvider sdkLoggerProvider =
         SdkLoggerProvider.builder().addLogRecordProcessor(processor).build();
@@ -372,14 +387,20 @@ class AuditLogRecordProcessorTest {
           assertThat(exception.logRecords).isNotEmpty();
         };
 
+    RetryPolicy retryPolicy =
+        RetryPolicy.builder()
+            .setMaxAttempts(2) // Only 1 retry attempt (2 total attempts)
+            .setInitialBackoff(Duration.ofMillis(1))
+            .setMaxBackoff(Duration.ofMillis(1))
+            .build();
+
     AuditLogRecordProcessor processor =
         AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore)
             .setScheduleDelay(MAX_SCHEDULE_DELAY_MILLIS, TimeUnit.MILLISECONDS)
             .setExceptionHandler(exceptionHandler)
             .setWaitOnExport(true) // enable waiting on export to ensure retries are attempted
             .setMaxExportBatchSize(1) // ensure each log is exported individually
-            .setMaxRetryAttempts(1) // set max retry attempts
-            .setMaxRetryDelay(1, TimeUnit.MILLISECONDS)
+            .setRetryPolicy(retryPolicy)
             .build();
     SdkLoggerProvider sdkLoggerProvider =
         SdkLoggerProvider.builder().addLogRecordProcessor(processor).build();
