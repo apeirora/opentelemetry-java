@@ -8,7 +8,6 @@ package io.opentelemetry.sdk.logs.export;
 import static io.opentelemetry.api.internal.Utils.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -143,15 +142,6 @@ public final class AuditLogRecordProcessorBuilder {
    * Sets the maximum time an export will be allowed to run before being cancelled. If unset,
    * defaults to {@value DEFAULT_EXPORT_TIMEOUT_MILLIS}ms.
    */
-  public AuditLogRecordProcessorBuilder setExporterTimeout(@Nonnull Duration timeout) {
-    requireNonNull(timeout, "timeout");
-    return setExporterTimeout(timeout.toNanos(), TimeUnit.NANOSECONDS);
-  }
-
-  /**
-   * Sets the maximum time an export will be allowed to run before being cancelled. If unset,
-   * defaults to {@value DEFAULT_EXPORT_TIMEOUT_MILLIS}ms.
-   */
   public AuditLogRecordProcessorBuilder setExporterTimeout(long timeout, @Nonnull TimeUnit unit) {
     requireNonNull(unit, "unit");
     checkArgument(timeout >= 0, "timeout must be non-negative");
@@ -216,15 +206,6 @@ public final class AuditLogRecordProcessorBuilder {
     checkArgument(retryMultiplier > 1.0, "retryMultiplier must be greater than 1.0");
     this.retryMultiplier = retryMultiplier;
     return this;
-  }
-
-  /**
-   * Sets the delay interval between two consecutive exports. If unset, defaults to {@value
-   * DEFAULT_SCHEDULE_DELAY_MILLIS}ms.
-   */
-  public AuditLogRecordProcessorBuilder setScheduleDelay(@Nonnull Duration delay) {
-    requireNonNull(delay, "delay");
-    return setScheduleDelay(delay.toNanos(), TimeUnit.NANOSECONDS);
   }
 
   /**

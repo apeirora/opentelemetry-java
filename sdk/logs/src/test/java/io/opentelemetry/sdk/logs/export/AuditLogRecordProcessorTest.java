@@ -106,12 +106,6 @@ class AuditLogRecordProcessorTest {
     assertThatThrownBy(
             () ->
                 AuditLogRecordProcessor.builder(mockLogRecordExporter, mockLogStore)
-                    .setScheduleDelay(null))
-        .isInstanceOf(NullPointerException.class)
-        .hasMessage("delay");
-    assertThatThrownBy(
-            () ->
-                AuditLogRecordProcessor.builder(mockLogRecordExporter, mockLogStore)
                     .setExporterTimeout(-1, TimeUnit.MILLISECONDS))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("timeout must be non-negative");
@@ -121,12 +115,6 @@ class AuditLogRecordProcessorTest {
                     .setExporterTimeout(1, null))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("unit");
-    assertThatThrownBy(
-            () ->
-                AuditLogRecordProcessor.builder(mockLogRecordExporter, mockLogStore)
-                    .setExporterTimeout(null))
-        .isInstanceOf(NullPointerException.class)
-        .hasMessage("timeout");
     assertThatThrownBy(
             () ->
                 AuditLogRecordProcessor.builder(mockLogRecordExporter, mockLogStore)

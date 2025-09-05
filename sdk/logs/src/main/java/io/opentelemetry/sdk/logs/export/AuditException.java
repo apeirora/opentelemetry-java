@@ -7,60 +7,31 @@ package io.opentelemetry.sdk.logs.export;
 
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import javax.annotation.Nullable;
 
 public class AuditException extends RuntimeException {
 
   private static final long serialVersionUID = 5791873097754062413L;
 
-  @Nullable public Throwable cause;
-
   @Nullable public Context context;
 
-  @Nullable public Collection<LogRecordData> logRecords;
+  public Collection<LogRecordData> logRecords;
 
-  public AuditException(
-      Throwable cause, Context context, @Nullable Collection<LogRecordData> logs) {
-    super(cause);
-    this.logRecords = logs;
-    this.context = context;
-  }
-
-  public AuditException(@Nullable String message, @Nullable Throwable cause) {
+  private AuditException(@Nullable String message, @Nullable Throwable cause) {
     super(message, cause);
+    logRecords = Collections.emptyList();
   }
 
-  public AuditException(
-      @Nullable String message,
-      @Nullable Throwable cause,
-      @Nullable Collection<LogRecordData> logs) {
+  AuditException(String message, @Nullable Throwable cause, Collection<LogRecordData> logs) {
     this(message, cause);
     this.logRecords = logs;
   }
 
-  public void add(@Nullable Collection<LogRecordData> data) {
-    if (data == null || data.isEmpty()) {
-      return;
-    }
-    if (logRecords == null) {
-      logRecords = new ArrayList<>(data);
-    } else {
-      logRecords.addAll(data);
-    }
-  }
-
-  public void because(@Nullable Throwable exception) {
-    cause = exception;
-  }
-
-  @Override
-  @Nullable
-  public synchronized Throwable getCause() {
-    if (cause != null) {
-      return cause;
-    }
-    return super.getCause();
+  AuditException(Throwable cause, Context context, Collection<LogRecordData> logs) {
+    super(cause);
+    this.logRecords = logs;
+    this.context = context;
   }
 }
