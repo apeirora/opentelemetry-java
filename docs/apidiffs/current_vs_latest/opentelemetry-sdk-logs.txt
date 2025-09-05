@@ -1,2 +1,45 @@
 Comparing source compatibility of opentelemetry-sdk-logs-1.54.0-SNAPSHOT.jar against opentelemetry-sdk-logs-1.53.0.jar
-No changes.
++++  NEW CLASS: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditException  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.RuntimeException
+	+++  NEW FIELD: PUBLIC(+) io.opentelemetry.context.Context context
+		+++  NEW ANNOTATION: javax.annotation.Nullable
+	+++  NEW FIELD: PUBLIC(+) java.util.Collection<io.opentelemetry.sdk.logs.data.LogRecordData> logRecords
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) io.opentelemetry.sdk.logs.export.AuditExceptionHandler  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) void handle(io.opentelemetry.sdk.logs.export.AuditException)
++++  NEW CLASS: PUBLIC(+) FINAL(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessor  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW INTERFACE: io.opentelemetry.sdk.logs.LogRecordProcessor
+	+++  NEW INTERFACE: java.io.Closeable
+	+++  NEW INTERFACE: java.lang.AutoCloseable
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder builder(io.opentelemetry.sdk.logs.export.LogRecordExporter, io.opentelemetry.sdk.logs.export.AuditLogStore)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.common.CompletableResultCode forceFlush()
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.common.CompletableResultCode getLastResultCode()
+		+++  NEW ANNOTATION: javax.annotation.Nullable
+	+++  NEW METHOD: PUBLIC(+) void onEmit(io.opentelemetry.context.Context, io.opentelemetry.sdk.logs.ReadWriteLogRecord)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.common.CompletableResultCode shutdown()
+	+++  NEW METHOD: PUBLIC(+) java.lang.String toString()
++++  NEW CLASS: PUBLIC(+) FINAL(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) long DEFAULT_SCHEDULE_DELAY_MILLIS
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) int DEFAULT_MAX_EXPORT_BATCH_SIZE
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) int DEFAULT_EXPORT_TIMEOUT_MILLIS
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessor build()
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder setExceptionHandler(io.opentelemetry.sdk.logs.export.AuditExceptionHandler)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder setExporterTimeout(long, java.util.concurrent.TimeUnit)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder setMaxExportBatchSize(int)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder setRetryPolicy(io.opentelemetry.sdk.common.export.RetryPolicy)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder setScheduleDelay(long, java.util.concurrent.TimeUnit)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.AuditLogRecordProcessorBuilder setWaitOnExport(boolean)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) io.opentelemetry.sdk.logs.export.AuditLogStore  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) java.util.Collection<io.opentelemetry.sdk.logs.data.LogRecordData> getAll()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) void removeAll(java.util.Collection<io.opentelemetry.sdk.logs.data.LogRecordData>)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) void save(io.opentelemetry.sdk.logs.data.LogRecordData)
+		+++  NEW EXCEPTION: java.io.IOException
