@@ -13,7 +13,7 @@ otelJava.moduleName.set("io.opentelemetry.sdk.common")
 
 dependencies {
   api(project(":api:all"))
-  api(project(":api:incubator"))
+  compileOnly(project(":api:incubator"))
 
   annotationProcessor("com.google.auto.value:auto-value")
 
