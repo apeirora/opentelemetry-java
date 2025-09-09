@@ -32,7 +32,7 @@ val DEPENDENCY_BOMS = listOf(
   "com.squareup.okhttp3:okhttp-bom:$okhttpVersion",
   "com.squareup.okio:okio-bom:3.16.0", // applies to transitive dependencies of okhttp
   "io.grpc:grpc-bom:1.75.0",
-  "io.netty:netty-bom:4.2.5.Final",
+  "io.netty:netty-bom:4.2.6.Final",
   "io.zipkin.brave:brave-bom:6.3.0",
   "io.zipkin.reporter2:zipkin-reporter-bom:3.5.1",
   "org.assertj:assertj-bom:3.27.4",
@@ -69,7 +69,7 @@ val DEPENDENCIES = listOf(
   "io.prometheus:prometheus-metrics-exposition-formats-no-protobuf:${prometheusServerVersion}",
   "javax.annotation:javax.annotation-api:1.3.2",
   "com.github.stefanbirkner:system-rules:1.19.0",
-  "com.google.api.grpc:proto-google-common-protos:2.61.0",
+  "com.google.api.grpc:proto-google-common-protos:2.61.1",
   "com.google.code.findbugs:jsr305:3.0.2",
   "com.google.guava:guava-beta-checker:1.0",
   "com.sun.net.httpserver:http:20070405",

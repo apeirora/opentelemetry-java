@@ -1,4 +1,4 @@
-Comparing source compatibility of opentelemetry-sdk-logs-1.54.0-SNAPSHOT.jar against opentelemetry-sdk-logs-1.53.0.jar
+Comparing source compatibility of opentelemetry-sdk-logs-1.55.0-SNAPSHOT.jar against opentelemetry-sdk-logs-1.54.0.jar
 ***  MODIFIED CLASS: PUBLIC FINAL io.opentelemetry.sdk.logs.export.BatchLogRecordProcessorBuilder  (not serializable)
 	===  CLASS FILE FORMAT VERSION: 52.0 <- 52.0
 	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.sdk.logs.export.BatchLogRecordProcessorBuilder setErrorConsumer(java.util.function.Consumer<java.util.Collection<io.opentelemetry.sdk.logs.data.LogRecordData>>)
