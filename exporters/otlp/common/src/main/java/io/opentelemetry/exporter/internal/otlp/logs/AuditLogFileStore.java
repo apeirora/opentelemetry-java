@@ -115,24 +115,21 @@ public final class AuditLogFileStore implements AuditLogStore {
 
   @Override
   public Collection<LogRecordData> getAll() {
+    Collection<LogRecordData> records = new ArrayList<>();
     lock.readLock().lock();
-    try {
-      Collection<LogRecordData> records = new ArrayList<>();
-      try (Stream<String> lines = Files.lines(logFilePath)) {
-        lines.forEach(
-            line -> {
-              LogRecordData record = parseLogRecord(line);
-              if (record != null) {
-                records.add(record);
-              }
-            });
-      } catch (IOException e) {
-        logger.throwing(AuditLogFileStore.class.getName(), "getAll", e);
-      }
-      return records;
-    } finally {
-      lock.readLock().unlock();
+    try (Stream<String> lines = Files.lines(logFilePath)) {
+      lines.forEach(
+          line -> {
+            LogRecordData record = parseLogRecord(line);
+            if (record != null) {
+              records.add(record);
+            }
+          });
+    } catch (IOException e) {
+      logger.throwing(AuditLogFileStore.class.getName(), "getAll", e);
     }
+    lock.readLock().unlock();
+    return records;
   }
 
   ObjectMapper json() {
