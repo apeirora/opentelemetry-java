@@ -268,8 +268,6 @@ class AuditLogRecordProcessorTest {
           wasCalled.set(true);
           assertThat(exception.logRecords).isNotNull();
           assertThat(exception.logRecords).isNotEmpty();
-
-          System.out.println(waitingLogRecordExporter.getExported());
         };
 
     AuditLogRecordProcessor processor =
