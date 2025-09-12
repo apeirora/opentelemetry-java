@@ -123,9 +123,16 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
             maxExportBatchSize,
             (record1, record2) -> {
               // compare by severity, higher severity first
-              return Integer.compare(
-                  record2.getSeverity().getSeverityNumber(),
-                  record1.getSeverity().getSeverityNumber());
+              int severity =
+                  Integer.compare(
+                      record2.getSeverity().getSeverityNumber(),
+                      record1.getSeverity().getSeverityNumber());
+              if (severity != 0) {
+                return severity;
+              }
+              // if severity is the same, compare by timestamp, older first
+              return Long.compare(
+                  record1.getTimestampEpochNanos(), record2.getTimestampEpochNanos());
             });
     persistency = logStore;
 
