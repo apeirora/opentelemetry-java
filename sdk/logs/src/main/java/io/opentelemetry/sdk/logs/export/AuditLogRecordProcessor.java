@@ -138,7 +138,10 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
 
     // Get all logs from persistent storage and add them to the queue
     queue.addAll(persistency.getAll());
-    exportLogs(); // export logs immediately to ensure no logs are missed
+    // export logs immediately to ensure no logs are missed
+    if (!queue.isEmpty()) {
+      new Thread(this::exportLogs, "persisted-log-export-at-startup").start();
+    }
 
     scheduler = Executors.newSingleThreadScheduledExecutor();
     future =
@@ -383,7 +386,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
 
     if (queue.size() >= size) {
       // when we have reached certain size, we export logs immediately
-      exportLogs();
+      new Thread(this::exportLogs, "queue-size-reached-log-export").start();
     }
   }
 
