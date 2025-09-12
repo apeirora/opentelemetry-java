@@ -75,7 +75,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
   /** The persistent storage for logs. */
   private final AuditLogStore persistency;
 
-  private final Object pLock = new Object();
+  private final Object storeLock = new Object();
 
   /** The PriorityBlockingQueue to hold the logs before exporting. */
   private final Queue<LogRecordData> queue;
@@ -212,64 +212,66 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
       }
     }
 
-    Collection<CompletableResultCode> results = new ArrayList<>();
-    Collection<LogRecordData> allFailedLogs = new HashSet<>();
+    synchronized (queue) {
+      Collection<CompletableResultCode> results = new ArrayList<>();
+      Collection<LogRecordData> allFailedLogs = new HashSet<>();
 
-    while (!queue.isEmpty()) {
-      // Create a collection of LogRecordData from the queue with a maximum size
-      Object[] arr = queue.stream().limit(size).toArray();
-      Collection<LogRecordData> logs = new ArrayList<>(arr.length);
-      for (Object o : arr) {
-        logs.add((LogRecordData) o);
-      }
-
-      CompletableResultCode export = tryExport(logs);
-      export.whenComplete(
-          () -> {
-            if (export.isSuccess()) {
-              // Reset retry counter on successful export
-              currentRetryAttempt.set(0);
-              lastRetryTimestamp.set(0);
-              synchronized (pLock) {
-                // ensure no two threads write to persistency at the same time
-                // remove logs from persistency only on successful export
-                persistency.removeAll(logs);
-              }
-            } else {
-              allFailedLogs.addAll(logs); // TODO evaluate partial failures and only add failed logs
-            }
-          });
-      results.add(export);
-
-      // Remove logs from queue regardless of success/failure to prevent infinite loops
-      queue.removeAll(logs);
-    }
-
-    CompletableResultCode all = CompletableResultCode.ofAll(results);
-    if (waitOnExport) {
-      all.join(timeout * results.size(), TimeUnit.NANOSECONDS);
-    }
-
-    if (all.isDone() && !all.isSuccess()) {
-      if (waitOnExport) {
-        // Export failed, prepare for retry if attempts remain
-        if (currentRetryAttempt.getAndAdd(1) < retryPolicy.getMaxAttempts()) {
-          lastRetryTimestamp.set(System.currentTimeMillis());
-          addMissingToQueue(allFailedLogs);
-          try {
-            Thread.sleep(calculateRetryDelay(currentRetryAttempt.get()));
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-          }
-          exportLogs(); // retry exporting failed logs
-          return;
+      while (!queue.isEmpty()) {
+        // Create a collection of LogRecordData from the queue with a maximum size
+        Object[] arr = queue.stream().limit(size).toArray();
+        Collection<LogRecordData> logs = new ArrayList<>(arr.length);
+        for (Object o : arr) {
+          logs.add((LogRecordData) o);
         }
-      }
-      // only, when we wait on export, we can really retry
-      handleExportFailure(allFailedLogs, all.getFailureThrowable());
-    }
 
-    lastResultCode = all;
+        CompletableResultCode export = tryExport(logs);
+        export.whenComplete(
+            () -> {
+              if (export.isSuccess()) {
+                // Reset retry counter on successful export
+                currentRetryAttempt.set(0);
+                lastRetryTimestamp.set(0);
+                synchronized (storeLock) {
+                  // ensure no two threads write to persistency at the same time
+                  // remove logs from persistency only on successful export
+                  persistency.removeAll(logs);
+                }
+              } else {
+                allFailedLogs.addAll(
+                    logs); // TODO evaluate partial failures and only add failed logs
+              }
+            });
+        results.add(export);
+
+        // Remove logs from queue regardless of success/failure to prevent infinite loops
+        queue.removeAll(logs);
+      }
+
+      CompletableResultCode all = CompletableResultCode.ofAll(results);
+      if (waitOnExport) {
+        all.join(timeout * results.size(), TimeUnit.NANOSECONDS);
+      }
+
+      if (all.isDone() && !all.isSuccess()) {
+        if (waitOnExport) {
+          // Export failed, prepare for retry if attempts remain
+          if (currentRetryAttempt.getAndAdd(1) < retryPolicy.getMaxAttempts()) {
+            lastRetryTimestamp.set(System.currentTimeMillis());
+            addMissingToQueue(allFailedLogs);
+            try {
+              Thread.sleep(calculateRetryDelay(currentRetryAttempt.get()));
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+            }
+            exportLogs(); // retry exporting failed logs
+            return;
+          }
+        }
+        // only, when we wait on export, we can really retry
+        handleExportFailure(allFailedLogs, all.getFailureThrowable());
+      }
+      lastResultCode = all;
+    }
   }
 
   /**
@@ -363,7 +365,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
 
     try {
       LogRecordData data = logRecord.toLogRecordData();
-      synchronized (pLock) {
+      synchronized (storeLock) {
         // ensure no two threads write to persistency at the same time
         persistency.save(data);
       }
