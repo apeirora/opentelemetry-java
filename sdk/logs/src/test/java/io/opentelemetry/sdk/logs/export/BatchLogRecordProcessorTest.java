@@ -657,6 +657,7 @@ class BatchLogRecordProcessorTest {
 
     public void reset() {
       this.countDownLatch = new CountDownLatch(numberToWaitFor);
+      logRecordDataList.clear();
     }
   }
 }
