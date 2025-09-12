@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Queue;
 import java.util.concurrent.Executors;
@@ -169,7 +170,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
     }
 
     Collection<CompletableResultCode> results = new ArrayList<>();
-    Collection<LogRecordData> allFailedLogs = new ArrayList<>();
+    Collection<LogRecordData> allFailedLogs = new HashSet<>();
 
     while (!queue.isEmpty()) {
       // Create a collection of LogRecordData from the queue with a maximum size
