@@ -42,7 +42,7 @@ java {
 
 checkstyle {
   configDirectory.set(file("$rootDir/buildscripts/"))
-  toolVersion = "11.0.1"
+  toolVersion = "12.1.0"
   isIgnoreFailures = false
   configProperties["rootDir"] = rootDir
 }
@@ -206,7 +206,6 @@ configurations.configureEach {
 val dependencyManagement by configurations.creating {
   isCanBeConsumed = false
   isCanBeResolved = false
-  isVisible = false
 }
 
 dependencies {
@@ -239,6 +238,8 @@ dependencies {
 
 testing {
   suites.withType(JvmTestSuite::class).configureEach {
+    useJUnitJupiter()
+
     dependencies {
       implementation(project(project.path))
 
@@ -248,8 +249,6 @@ testing {
       compileOnly("com.google.errorprone:error_prone_annotations")
       compileOnly("com.google.code.findbugs:jsr305")
 
-      implementation("org.junit.jupiter:junit-jupiter-api")
-      implementation("org.junit.jupiter:junit-jupiter-params")
       implementation("nl.jqno.equalsverifier:equalsverifier")
       implementation("org.mockito:mockito-core")
       implementation("org.mockito:mockito-junit-jupiter")
@@ -258,7 +257,6 @@ testing {
       implementation("org.junit-pioneer:junit-pioneer")
       implementation("io.github.netmikey.logunit:logunit-jul")
 
-      runtimeOnly("org.junit.jupiter:junit-jupiter-engine")
       runtimeOnly("org.slf4j:slf4j-simple")
     }
 
