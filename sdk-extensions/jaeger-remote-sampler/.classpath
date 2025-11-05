@@ -6,6 +6,20 @@
 			<attribute name="gradle_used_by_scope" value="main,test"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" output="bin/main" path="build/generated/sources/proto/main/java">
+		<attributes>
+			<attribute name="ignore_optional_problems" value="true"/>
+			<attribute name="protobuf_generated_source" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="bin/main" path="build/generated/sources/proto/main/grpc">
+		<attributes>
+			<attribute name="ignore_optional_problems" value="true"/>
+			<attribute name="protobuf_generated_source" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" output="bin/main" path="build/generated/source/wire">
 		<attributes>
 			<attribute name="gradle_scope" value="main"/>
@@ -18,19 +32,118 @@
 			<attribute name="gradle_used_by_scope" value="main,test"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" output="bin/test" path="src/test/resources">
+	<classpathentry kind="src" path="build/generated/sources/proto/test/java">
 		<attributes>
-			<attribute name="test" value="true"/>
-			<attribute name="gradle_scope" value="test"/>
-			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="ignore_optional_problems" value="true"/>
+			<attribute name="protobuf_generated_source" value="true"/>
+			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17/">
+	<classpathentry kind="src" path="build/generated/sources/proto/test/grpc">
+		<attributes>
+			<attribute name="ignore_optional_problems" value="true"/>
+			<attribute name="protobuf_generated_source" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="bin/testGrpcNetty" path="build/generated/sources/proto/testGrpcNetty/java">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="gradle_scope" value="testGrpcNetty"/>
+			<attribute name="gradle_used_by_scope" value="testGrpcNetty"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="bin/testGrpcNetty" path="build/generated/sources/proto/testGrpcNetty/grpc">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="gradle_scope" value="testGrpcNetty"/>
+			<attribute name="gradle_used_by_scope" value="testGrpcNetty"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21/">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
+	<classpathentry kind="src" path="/okhttp">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/exporters-common">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/autoconfigure-spi">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/sdk-all">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/trace">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/metrics">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/logs">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/sdk-common">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/api-incubator">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/api-all">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/context">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/opentelemetry-java-common">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/testing">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/autoconfigure">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/opentelemetry-java-testing-internal">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" path=".apt_generated">
 		<attributes>
 			<attribute name="optional" value="true"/>
@@ -42,6 +155,5 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/sdk-extensions-incubator"/>
 	<classpathentry kind="output" path="bin/default"/>
 </classpath>

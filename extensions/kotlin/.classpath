@@ -1,42 +1,362 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="bin/main" path="src/main/java">
-		<attributes>
-			<attribute name="gradle_scope" value="main"/>
-			<attribute name="gradle_used_by_scope" value="main,test,jmh"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="src" output="bin/main" path="src/main/kotlin">
-		<attributes>
-			<attribute name="gradle_scope" value="main"/>
-			<attribute name="gradle_used_by_scope" value="main,test,jmh"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="src" output="bin/test" path="src/test/kotlin">
-		<attributes>
-			<attribute name="gradle_scope" value="test"/>
-			<attribute name="gradle_used_by_scope" value="test"/>
-			<attribute name="test" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="src" output="bin/testStrictContext" path="src/testStrictContext/kotlin">
-		<attributes>
-			<attribute name="gradle_scope" value="testStrictContext"/>
-			<attribute name="gradle_used_by_scope" value="testStrictContext"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17/"/>
 	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
 	<classpathentry kind="src" path=".apt_generated">
 		<attributes>
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" output="bin/test" path=".apt_generated_tests">
+	<classpathentry output="bin/test" kind="src" path=".apt_generated_tests">
 		<attributes>
 			<attribute name="optional" value="true"/>
 			<attribute name="test" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin/default"/>
+	<classpathentry output="bin/main" kind="src" path="src/main/java">
+		<attributes>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="gradle_used_by_scope" value="main,test,jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/main" kind="src" path="src/main/kotlin">
+		<attributes>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="gradle_used_by_scope" value="main,test,jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/test" kind="src" path="src/test/kotlin">
+		<attributes>
+			<attribute name="gradle_scope" value="test"/>
+			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/testStrictContext" kind="src" path="src/testStrictContext/kotlin">
+		<attributes>
+			<attribute name="gradle_scope" value="testStrictContext"/>
+			<attribute name="gradle_used_by_scope" value="testStrictContext"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17/"/>
+	<classpathentry kind="src" path="/api-all">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/context">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/opentelemetry-java-common">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/testing">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/sdk-all">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/trace">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/metrics">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/logs">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/sdk-common">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/api-incubator">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/opentelemetry-java-testing-internal">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.5.2/d4724dfd0c4e340e15bd681a47e786bac9fd77a3/kotlinx-coroutines-core-jvm-1.5.2-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.5.2/f4cc07a50437659e0043e7da762809a46932b6a0/kotlinx-coroutines-core-jvm-1.5.2.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/2.2.20/114750c3625f9fdfb6dd568add7b3629d2c52627/kotlin-stdlib-jdk8-2.2.20-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/2.2.20/57c4d839a6e5ad105d61ffc5cc0bf4de649c1714/kotlin-stdlib-jdk8-2.2.20.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/2.2.20/19a55005faf474d4021b61d617693e462c17aa54/kotlin-stdlib-jdk7-2.2.20-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/2.2.20/bdbe3b5d872fa3b74d8fcd4e7ca3193f4abc9cc8/kotlin-stdlib-jdk7-2.2.20.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.2.20/cd601396c610d3a26d7d279bde8841ae431e471d/kotlin-stdlib-2.2.20-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.2.20/5380b19fa1924399b62ce3a1faffebb2b4f82272/kotlin-stdlib-2.2.20.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh,main,test,testStrictContext"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value-annotations/1.11.0/523edc72a56d07e69e7868b8136c0f430de79a12/auto-value-annotations-1.11.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value-annotations/1.11.0/f0d047931d07cfbc6fa4079854f181ff62891d6f/auto-value-annotations-1.11.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.2/b19b5927c2c25b6c70f093767041e641ae0b1b35/jsr305-3.0.2-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.2/25ea2e8b0c338a877313bd4672d3fe056ea78f0d/jsr305-3.0.2.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/javax.annotation/javax.annotation-api/1.3.2/65dfd2c47380bf72ec62a5b8c4ceb78a4eda1a53/javax.annotation-api-1.3.2-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/javax.annotation/javax.annotation-api/1.3.2/934c04d3cfef185a8008e7bf34331b79730a9d43/javax.annotation-api-1.3.2.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-bytecode/1.37/2f86c148bbb2189faccfad4e2d8f6b6485b00641/jmh-generator-bytecode-1.37-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-bytecode/1.37/76bba384deb89a7107b4d2dc8f655585dee5eaeb/jmh-generator-bytecode-1.37.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-annprocess/1.37/fba3e9b555f48ad2af00812fdb83b0ffd92ea4a/jmh-generator-annprocess-1.37-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-annprocess/1.37/da93888682df163144edf9b13d2b78e54166063a/jmh-generator-annprocess-1.37.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-asm/1.37/7a3b11e4d826b8309efcd20c26159187b0a3a2b7/jmh-generator-asm-1.37-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-asm/1.37/2a39d64e8fd164192567d63e299214dcf2aadca5/jmh-generator-asm-1.37.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-reflection/1.37/2037efe8d992836889455e5621f4833e919256a8/jmh-generator-reflection-1.37-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-generator-reflection/1.37/bc30f3ff829ddfca091665aa228c70687fbc5677/jmh-generator-reflection-1.37.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-core/1.37/b9d2a0ec37497caeca27a8498e8c821096b68c45/jmh-core-1.37-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-core/1.37/896f27e49105b35ea1964319c83d12082e7a79ef/jmh-core-1.37.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/5991ca87ef1fb5544943d9abc5a9a37583fabe03/annotations-13.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh,main,test,testStrictContext"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/net.sf.jopt-simple/jopt-simple/5.0.4/950831646d014c9162999019a3cb17d5fc01ac0d/jopt-simple-5.0.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/net.sf.jopt-simple/jopt-simple/5.0.4/4fdac2fbe92dfad86aa6e9301736f6b4342a3f5c/jopt-simple-5.0.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.6.1/8fab23986ea8886af34818daf32a718e81dc98ba/commons-math3-3.6.1-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.6.1/e4ba98f1d4b3c80ec46392f25e094a6a2e58fcbf/commons-math3-3.6.1.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.0/4ebd60354f49eaac2afe314ae2c7f21191807473/asm-9.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.0/af582ff60bc567c42d931500c3fdc20e0141ddf9/asm-9.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/com.google.errorprone/error_prone_annotations/2.42.0/540dd89f4e210284f046d9db8af535bb54cc8d81/error_prone_annotations-2.42.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/com.google.errorprone/error_prone_annotations/2.42.0/57a3eddaddd4f2d412e13d3bcefba29b5ebda1b6/error_prone_annotations-2.42.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value=""/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/nl.jqno.equalsverifier/equalsverifier/3.19.4/bddb666e2caee1fcb288c8448b4187c3deab4797/equalsverifier-3.19.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/nl.jqno.equalsverifier/equalsverifier/3.19.4/e507511f4d99006af16c2968e7376680a8ad104c/equalsverifier-3.19.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.mockito/mockito-junit-jupiter/4.11.0/6aa189452f42167be3dc9ce5ac029df0f15ba0e5/mockito-junit-jupiter-4.11.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.mockito/mockito-junit-jupiter/4.11.0/6a2a2d138141e9c003451292348173c899450872/mockito-junit-jupiter-4.11.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.mockito/mockito-core/4.11.0/caa9afd0d62ce8c216eb10c76105bd9597ba03ae/mockito-core-4.11.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.mockito/mockito-core/4.11.0/ce5226440c2ee78915716d4ce3d10aed2dbf26fb/mockito-core-4.11.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.assertj/assertj-core/3.27.6/b802cb15ba0ef2fd5bb3746a2833d02dde3f5e26/assertj-core-3.27.6-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.assertj/assertj-core/3.27.6/8f34ccd6808899ad1d0aac6a770b73191f2f2a53/assertj-core-3.27.6.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.awaitility/awaitility/4.3.0/a7a6d13aaa125e6c1910ddedc56045b5c4b6a40f/awaitility-4.3.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.awaitility/awaitility/4.3.0/f0c0bc1e404e500bab3f498b922eaedeae1c0207/awaitility-4.3.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit-pioneer/junit-pioneer/1.9.1/2d2f29f0e7e20207ba3c47c8e55d9c8c7c5b9ad2/junit-pioneer-1.9.1-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit-pioneer/junit-pioneer/1.9.1/8b528fa0a49297582932bdd9096c84dedf71cf25/junit-pioneer-1.9.1.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/io.github.netmikey.logunit/logunit-jul/2.0.0/22073af0ada59c321fac4516915423d84dd37913/logunit-jul-2.0.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/io.github.netmikey.logunit/logunit-jul/2.0.0/9b9a06b937375f919298b5be56546345c16f5da8/logunit-jul-2.0.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-params/5.13.4/c34ec2635caea535e60d0ff50557919a023ea3b6/junit-jupiter-params-5.13.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-params/5.13.4/c8930eb7fcfbed0b191703ab53f48475a75bd17/junit-jupiter-params-5.13.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-api/5.13.4/d6de55e11ea559f5a11b6718abdc728b6c1c385c/junit-jupiter-api-5.13.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-api/5.13.4/2817f736551fe4949b79924715ef6f594ee072f4/junit-jupiter-api-5.13.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-commons/1.13.4/a0d80630bc6664911f036c22a4b2724331c7960f/junit-platform-commons-1.13.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-commons/1.13.4/8f63c7ed05b473d95cc63d1082054d7bfcf9c0e5/junit-platform-commons-1.13.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter/5.13.4/9c1abe3ede704e951fa5329365daa7a4cb444ed5/junit-jupiter-5.13.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter/5.13.4/93547b3eca48a61f65f735c1898d3ec196e34149/junit-jupiter-5.13.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.17.7/f380f394d4455dc20375fab7d28b26aa727b5a1a/byte-buddy-1.17.7-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.17.7/3856bfab61beb23e099a0d6629f2ba8de4b98ace/byte-buddy-1.17.7.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.12.19/261284eb82c0c2280424cabfa00edbb713313217/byte-buddy-agent-1.12.19-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.12.19/450917cf3b358b691a824acf4c67aa89c826f67e/byte-buddy-agent-1.12.19.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/io.github.netmikey.logunit/logunit-core/2.0.0/47594796f08770ca12efed7be3d2aceda03fcbe1/logunit-core-2.0.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/io.github.netmikey.logunit/logunit-core/2.0.0/961856baa0e2deba1fd132e4d6ed5a05e8dacae4/logunit-core-2.0.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.objenesis/objenesis/3.4/5eac31db28388362cf0d241cf608b3c6a50b156/objenesis-3.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.objenesis/objenesis/3.4/675cbe121a68019235d27f6c34b4f0ac30e07418/objenesis-3.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/aa6763235632b77fd9245c850b6a7dc09382314c/hamcrest-2.1-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.3.0/afb8ff23cffb021c56f333953aebfe6e8818568e/opentest4j-1.3.0-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.3.0/152ea56b3a72f655d4fd677fc0ef2596c3dd5e6e/opentest4j-1.3.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.apiguardian/apiguardian-api/1.1.2/e0787a997746ac32639e0bf3cb27af8dce8a3428/apiguardian-api-1.1.2-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.apiguardian/apiguardian-api/1.1.2/a231e0d844d2721b0fa1b238006d15c6ded6842a/apiguardian-api-1.1.2.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value=""/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.7/f887f95694cd20d51a062446b6e3d09dd02d98ff/slf4j-api-2.0.7-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.7/41eb7184ea9d556f23e18b5cb99cad1f8581fc00/slf4j-api-2.0.7.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value=""/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-engine/5.13.4/fb05e0467eecefc6c1038526f153abfe1ac19fc6/junit-jupiter-engine-5.13.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-engine/5.13.4/d29fc8b6a28d21b8741f299ae4deb3e3aa68b2e8/junit-jupiter-engine-5.13.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-launcher/1.13.4/dca740239c050d55760bf2bf4073fbf18dc4bf8c/junit-platform-launcher-1.13.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-launcher/1.13.4/e72a4d00af6177569fd57df4c8c4bb241c6aa4b6/junit-platform-launcher-1.13.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-engine/1.13.4/2843aaa35d1c06e8f3b5196697cd85522caf9e8b/junit-platform-engine-1.13.4-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-engine/1.13.4/cdd49063ae6e25494d1a9a08f4a9ab5de2b73bcb/junit-platform-engine-1.13.4.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-simple/2.0.17/59514e6ee2a098b2127cc6923e241be86a087f31/slf4j-simple-2.0.17-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-simple/2.0.17/9872a3fd794ffe7b18d17747926a64d61526ca96/slf4j-simple-2.0.17.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/jul-to-slf4j/2.0.17/ddf86d49b5af339fd69a97d72e8ecf73a7953f6b/jul-to-slf4j-2.0.17-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/jul-to-slf4j/2.0.17/524cb6ccc2b68a57604750e1ab8b13b5a786a6aa/jul-to-slf4j-2.0.17.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.17/d7da5e7fecb3544b1e32f86dc0ef5d5ecf9f381b/slf4j-api-2.0.17-sources.jar" kind="lib" path="D:/SAPDevelop/gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.17/d9e58ac9c7779ba3bf8142aff6c830617a7fe60f/slf4j-api-2.0.17.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test,testStrictContext"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/SAPDevelop/git/otel/opentelemetry-java/extensions/kotlin/build/classes/java/main">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh,main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/SAPDevelop/git/otel/opentelemetry-java/extensions/kotlin/build/classes/kotlin/main">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh,main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/SAPDevelop/git/otel/opentelemetry-java/extensions/kotlin/build/resources/main">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh,main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/SAPDevelop/git/otel/opentelemetry-java/extensions/kotlin/build/generated/properties">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="jmh,main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/SAPDevelop/git/otel/opentelemetry-java/extensions/kotlin/build/generated/properties" exported="true"/>
 </classpath>
