@@ -9,7 +9,7 @@ rootProject.extra["versions"] = dependencyVersions
 
 
 val autoValueVersion = "1.11.1"
-val errorProneVersion = "2.45.0"
+val errorProneVersion = "2.46.0"
 val jmhVersion = "1.37"
 // Mockito 5.x.x requires Java 11 https://github.com/mockito/mockito/releases/tag/v5.0.0
 val mockitoVersion = "4.11.0"
@@ -75,7 +75,7 @@ val DEPENDENCIES = listOf(
   "com.sun.net.httpserver:http:20070405",
   "com.squareup.okhttp3:okhttp:$okhttpVersion",
   "com.tngtech.archunit:archunit-junit5:1.4.1",
-  "com.uber.nullaway:nullaway:0.13.0",
+  "com.uber.nullaway:nullaway:0.13.1",
   "edu.berkeley.cs.jqf:jqf-fuzz:1.7", // jqf-fuzz version 1.8+ requires Java 11+
   "eu.rekawek.toxiproxy:toxiproxy-java:2.1.11",
   "io.github.netmikey.logunit:logunit-jul:2.0.0",
