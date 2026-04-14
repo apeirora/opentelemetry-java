@@ -13,6 +13,7 @@ import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -169,6 +170,24 @@ public final class RetryInterceptor implements Interceptor {
       return true;
     } else if (e instanceof SocketException) {
       return true;
+    }
+
+    Throwable cause = e.getCause();
+    if (cause != null) {
+      logger.log(Level.WARNING, cause.getMessage(), cause);
+    }
+    if (cause instanceof InterruptedException) {
+      // The request was cancelled.
+      return true;
+    }
+
+    if (e.getMessage() != null) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+      String msg = e.getMessage().toLowerCase(Locale.ROOT);
+      return msg.contains("connection aborted")
+          || msg.contains("canceled")
+          || msg.contains("connection reset by peer")
+          || msg.contains("socket closed");
     }
     return false;
   }
