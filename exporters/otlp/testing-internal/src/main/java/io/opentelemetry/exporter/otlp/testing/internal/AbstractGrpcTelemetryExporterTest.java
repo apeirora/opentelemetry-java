@@ -478,6 +478,7 @@ public abstract class AbstractGrpcTelemetryExporterTest<T, U extends Message> {
         .extracting("delegate.grpcSender")
         .matches(sender -> sender.getClass().getSimpleName().equals("OkHttpGrpcSender"));
 
+    // TODO: debug why connecting to localhost with a very short timeout doesn't trigger retry!
     try (TelemetryExporter<T> exporter =
         exporterBuilder()
             // Connecting to a non-routable IP address to trigger connection error

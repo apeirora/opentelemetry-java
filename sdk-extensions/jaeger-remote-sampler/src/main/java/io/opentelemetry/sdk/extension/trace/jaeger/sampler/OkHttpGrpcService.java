@@ -67,6 +67,7 @@ final class OkHttpGrpcService implements GrpcService {
         // be gRPC status information available handled below though, so ignore this exception
         // and continue through gRPC error handling logic. In the worst case we will record the
         // HTTP error.
+        logger.log(Level.FINE, ignored.getMessage(), ignored);
       }
 
       String status = grpcStatus(response);

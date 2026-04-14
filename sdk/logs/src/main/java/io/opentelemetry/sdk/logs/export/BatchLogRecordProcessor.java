@@ -44,7 +44,7 @@ public final class BatchLogRecordProcessor implements LogRecordProcessor {
 
   private static final String WORKER_THREAD_NAME =
       BatchLogRecordProcessor.class.getSimpleName() + "_WorkerThread";
-  private static final AttributeKey<String> LOG_RECORD_PROCESSOR_TYPE_LABEL =
+  static final AttributeKey<String> LOG_RECORD_PROCESSOR_TYPE_LABEL =
       AttributeKey.stringKey("processorType");
   private static final AttributeKey<Boolean> LOG_RECORD_PROCESSOR_DROPPED_LABEL =
       AttributeKey.booleanKey("dropped");
