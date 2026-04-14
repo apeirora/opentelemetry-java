@@ -5,6 +5,10 @@
 
 package io.opentelemetry.sdk.logs.export;
 
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.common.export.RetryPolicy;
@@ -97,6 +101,16 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
   /** Whether to wait for each export try to complete. */
   private final boolean waitOnExport;
 
+  private final LongCounter processedLogsCounter;
+  private final LongCounter exportedLogsCounter;
+  private final LongCounter failedLogsCounter;
+
+  /** Attributes for metrics associated with the AuditLogRecordProcessor. */
+  private static final Attributes meterAttr =
+      Attributes.of(
+          BatchLogRecordProcessor.LOG_RECORD_PROCESSOR_TYPE_LABEL,
+          AuditLogRecordProcessor.class.getSimpleName());
+
   /**
    * Creates a new AuditLogRecordProcessor with the given parameters.
    *
@@ -113,6 +127,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
       LogRecordExporter logRecordExporter,
       @Nullable AuditExceptionHandler exceptionHandler,
       AuditLogStore logStore,
+      MeterProvider meterProvider,
       long scheduleDelayNanos,
       int maxExportBatchSize,
       long exporterTimeoutNanos,
@@ -141,6 +156,44 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
                   record1.getTimestampEpochNanos(), record2.getTimestampEpochNanos());
             });
     persistency = logStore;
+
+    Meter meter = meterProvider.meterBuilder("io.opentelemetry.sdk.logs").build();
+    meter
+        .gaugeBuilder("queueSize")
+        .ofLongs()
+        .setDescription("The number of items queued")
+        .setUnit("1")
+        .buildWithCallback(result -> result.record(queue.size(), meterAttr));
+    meter
+        .gaugeBuilder("persistencySize")
+        .ofLongs()
+        .setDescription("The number of persisted items")
+        .setUnit("1")
+        .buildWithCallback(result -> result.record(persistency.size(), meterAttr));
+    meter
+        .gaugeBuilder("retryAttempt")
+        .ofLongs()
+        .setDescription("The number of retry attempts made for the last export")
+        .setUnit("1")
+        .buildWithCallback(result -> result.record(currentRetryAttempt.get(), meterAttr));
+    processedLogsCounter =
+        meter
+            .counterBuilder("receivedLogs")
+            .setUnit("1")
+            .setDescription("The number of logs received for processing via onEmit().")
+            .build();
+    exportedLogsCounter =
+        meter
+            .counterBuilder("exportedLogs")
+            .setUnit("1")
+            .setDescription("The number of exported logs.")
+            .build();
+    failedLogsCounter =
+        meter
+            .counterBuilder("failedLogs")
+            .setUnit("1")
+            .setDescription("The number of logs that failed to be exported in the first place.")
+            .build();
 
     // Get all logs from persistent storage and add them to the queue
     queue.addAll(persistency.getAll());
@@ -229,6 +282,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
             () -> {
               if (export.isSuccess()) {
                 // Reset retry counter on successful export
+                exportedLogsCounter.add(logs.size(), meterAttr);
                 currentRetryAttempt.set(0);
                 lastRetryTimestamp.set(0);
                 synchronized (storeLock) {
@@ -237,6 +291,7 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
                   persistency.removeAll(logs);
                 }
               } else {
+                failedLogsCounter.add(logs.size(), meterAttr);
                 allFailedLogs.addAll(
                     logs); // TODO evaluate partial failures and only add failed logs
               }
@@ -348,6 +403,8 @@ public final class AuditLogRecordProcessor implements LogRecordProcessor {
     if (logRecord == null) {
       return;
     }
+
+    processedLogsCounter.add(1, meterAttr);
 
     if (shutdown.get()) {
       AuditException exception =

@@ -8,6 +8,7 @@ package io.opentelemetry.sdk.logs.export;
 import static io.opentelemetry.api.internal.Utils.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.sdk.common.export.RetryPolicy;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -39,6 +40,8 @@ public final class AuditLogRecordProcessorBuilder {
 
   private RetryPolicy retryPolicy = RetryPolicy.getDefault();
 
+  private MeterProvider meterProvider = MeterProvider.noop();
+
   private long scheduleDelayNanos = TimeUnit.MILLISECONDS.toNanos(DEFAULT_SCHEDULE_DELAY_MILLIS);
 
   private boolean waitOnExport = false;
@@ -60,6 +63,7 @@ public final class AuditLogRecordProcessorBuilder {
         logRecordExporter,
         exceptionHandler,
         logStore,
+        meterProvider,
         scheduleDelayNanos,
         maxExportBatchSize,
         exporterTimeoutNanos,
@@ -144,6 +148,16 @@ public final class AuditLogRecordProcessorBuilder {
   public AuditLogRecordProcessorBuilder setRetryPolicy(@Nonnull RetryPolicy retryPolicy) {
     requireNonNull(retryPolicy, "retryPolicy");
     this.retryPolicy = retryPolicy;
+    return this;
+  }
+
+  /**
+   * Sets the {@link MeterProvider} to use to collect metrics related to batch export. If not set,
+   * metrics will not be collected.
+   */
+  public AuditLogRecordProcessorBuilder setMeterProvider(MeterProvider meterProvider) {
+    requireNonNull(meterProvider, "meterProvider");
+    this.meterProvider = meterProvider;
     return this;
   }
 
