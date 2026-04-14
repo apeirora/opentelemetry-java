@@ -6,7 +6,6 @@
 package io.opentelemetry.sdk.logs.export;
 
 import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.awaitility.Awaitility.await;
@@ -35,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.Nonnull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -59,12 +59,12 @@ class AuditLogRecordProcessorTest {
     }
 
     @Override
-    public void removeAll(Collection<LogRecordData> logs) {
+    public void removeAll(@Nonnull Collection<LogRecordData> logs) {
       this.logs.removeAll(logs);
     }
 
     @Override
-    public void save(LogRecordData logRecord) throws IOException {
+    public void save(@Nonnull LogRecordData logRecord) {
       logs.add(logRecord);
     }
   }
@@ -147,7 +147,7 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void emitLogsToMultipleExporters() throws IOException {
+  void emitLogsToMultipleExporters() {
     WaitingLogRecordExporter waitingLogRecordExporter1 =
         new WaitingLogRecordExporter(2, CompletableResultCode.ofSuccess());
     WaitingLogRecordExporter waitingLogRecordExporter2 =
@@ -182,7 +182,7 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void emitMoreLogsThanBufferSize() throws IOException {
+  void emitMoreLogsThanBufferSize() {
     CompletableLogRecordExporter logRecordExporter = new CompletableLogRecordExporter();
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
 
@@ -213,7 +213,7 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void emitMultipleLogs() throws IOException {
+  void emitMultipleLogs() {
     WaitingLogRecordExporter waitingLogRecordExporter =
         new WaitingLogRecordExporter(2, CompletableResultCode.ofSuccess());
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
@@ -337,7 +337,7 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void forceFlush() throws IOException {
+  void forceFlush() {
     WaitingLogRecordExporter waitingLogRecordExporter =
         new WaitingLogRecordExporter(100, CompletableResultCode.ofSuccess(), 1);
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
@@ -366,13 +366,11 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void ignoresNullLogs() throws IOException {
+  void ignoresNullLogs() {
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
-    AuditLogRecordProcessor processor =
-        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build();
-    try {
+    try (AuditLogRecordProcessor processor =
+        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build()) {
       assertThatCode(() -> processor.onEmit(null, null)).doesNotThrowAnyException();
-    } finally {
       processor.shutdown();
     }
   }
@@ -384,7 +382,7 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void shutdownAfterEmitThrowsException() throws IOException {
+  void shutdownAfterEmitThrowsException() {
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
     AuditLogRecordProcessor processor =
         AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore)
@@ -403,7 +401,7 @@ class AuditLogRecordProcessorTest {
 
   @Test
   @Timeout(10)
-  void shutdownFlushes() throws IOException {
+  void shutdownFlushes() {
     WaitingLogRecordExporter waitingLogRecordExporter =
         new WaitingLogRecordExporter(1, CompletableResultCode.ofSuccess());
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
@@ -427,14 +425,15 @@ class AuditLogRecordProcessorTest {
   }
 
   @Test
-  void shutdownPropagatesFailure() throws IOException {
+  void shutdownPropagatesFailure() {
     when(mockLogRecordExporter.shutdown()).thenReturn(CompletableResultCode.ofFailure());
     InMemoryAuditLogStore logStore = new InMemoryAuditLogStore();
-    AuditLogRecordProcessor processor =
-        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build();
-    CompletableResultCode result = processor.shutdown();
-    result.join(1, TimeUnit.SECONDS);
-    assertThat(result.isSuccess()).isTrue();
+    try (AuditLogRecordProcessor processor =
+        AuditLogRecordProcessor.builder(mockLogRecordExporter, logStore).build()) {
+      CompletableResultCode result = processor.shutdown();
+      result.join(1, TimeUnit.SECONDS);
+      assertThat(result.isSuccess()).isTrue();
+    }
   }
 
   @Test
