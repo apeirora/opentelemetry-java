@@ -51,5 +51,5 @@ jobs:
       success: >-
         ${{
           needs.link-check.result == 'success' &&
-          needs.publish-snapshots.result == 'success'
+          (needs.publish-snapshots.result == 'success' || needs.publish-snapshots.result == 'skipped')
         }}
