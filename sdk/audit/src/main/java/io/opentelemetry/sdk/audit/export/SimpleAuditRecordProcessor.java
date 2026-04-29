@@ -26,16 +26,15 @@ import java.util.logging.Logger;
  * An {@link AuditRecordProcessor} that passes each {@link AuditRecordData} directly to the
  * configured {@link AuditRecordExporter} synchronously on the calling thread.
  *
- * <p>This is the default processor for synchronous {@code emit()} calls. It guarantees that
- * {@code emit()} blocks until the exporter has acknowledged the record and returns the {@link
+ * <p>This is the default processor for synchronous {@code emit()} calls. It guarantees that {@code
+ * emit()} blocks until the exporter has acknowledged the record and returns the {@link
  * AuditReceipt} from the sink.
  *
  * <p>For high-volume scenarios, consider {@link BatchAuditRecordProcessor}.
  */
 public final class SimpleAuditRecordProcessor implements AuditRecordProcessor {
 
-  private static final Logger logger =
-      Logger.getLogger(SimpleAuditRecordProcessor.class.getName());
+  private static final Logger logger = Logger.getLogger(SimpleAuditRecordProcessor.class.getName());
 
   private final AuditRecordExporter exporter;
   private final Object exporterLock = new Object();
@@ -46,8 +45,8 @@ public final class SimpleAuditRecordProcessor implements AuditRecordProcessor {
   }
 
   /**
-   * Creates a new {@link SimpleAuditRecordProcessor} that synchronously exports to the given
-   * {@link AuditRecordExporter}.
+   * Creates a new {@link SimpleAuditRecordProcessor} that synchronously exports to the given {@link
+   * AuditRecordExporter}.
    */
   public static SimpleAuditRecordProcessor create(AuditRecordExporter exporter) {
     requireNonNull(exporter, "exporter");

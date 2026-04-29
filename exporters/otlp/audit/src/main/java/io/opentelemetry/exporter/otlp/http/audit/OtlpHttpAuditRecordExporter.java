@@ -5,21 +5,19 @@
 
 package io.opentelemetry.exporter.otlp.http.audit;
 
-import static java.util.Objects.requireNonNull;
-
+import io.opentelemetry.api.audit.AuditDeliveryException;
 import io.opentelemetry.api.audit.AuditReceipt;
 import io.opentelemetry.exporter.internal.http.HttpExporter;
 import io.opentelemetry.exporter.internal.http.HttpExporterBuilder;
 import io.opentelemetry.exporter.internal.otlp.logs.LogsRequestMarshaler;
-import io.opentelemetry.exporter.otlp.internal.OtlpUserAgent;
 import io.opentelemetry.sdk.audit.AuditExportResult;
 import io.opentelemetry.sdk.audit.AuditRecordData;
 import io.opentelemetry.sdk.audit.AuditRecordExporter;
 import io.opentelemetry.sdk.common.CompletableResultCode;
-import io.opentelemetry.sdk.common.internal.ComponentId;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.CountDownLatch;
@@ -31,8 +29,8 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Exports {@link AuditRecordData}s using OTLP/HTTP to the dedicated {@code /v1/audit} endpoint.
  *
- * <p>Audit records are serialized as OTLP {@code LogRecord} protobuf messages (reusing the
- * {@code ExportLogsServiceRequest} envelope) with mandatory audit fields stored as attributes.
+ * <p>Audit records are serialized as OTLP {@code LogRecord} protobuf messages (reusing the {@code
+ * ExportLogsServiceRequest} envelope) with mandatory audit fields stored as attributes.
  *
  * <p>The OTLP receiver MUST NOT respond with {@code partial_success}; any partial-success response
  * is treated as a hard failure and all records in the batch are retained for retry.
@@ -43,8 +41,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class OtlpHttpAuditRecordExporter implements AuditRecordExporter {
 
   static final String DEFAULT_ENDPOINT = "http://localhost:4318/v1/audit";
-  private static final ComponentId COMPONENT_ID =
-      ComponentId.generateLazy("otlp_http_audit_exporter");
 
   private final HttpExporterBuilder builder;
   private final HttpExporter delegate;
@@ -67,21 +63,20 @@ public final class OtlpHttpAuditRecordExporter implements AuditRecordExporter {
   /**
    * Exports the given audit records to the configured OTLP {@code /v1/audit} endpoint.
    *
-   * <p>Audit records are adapted to OTLP {@code LogRecord}s via {@link
-   * AuditLogRecordDataAdapter}. The {@code InstrumentationScope} is left empty and {@code
-   * SeverityNumber} is unset per the audit logging specification.
+   * <p>Audit records are adapted to OTLP {@code LogRecord}s via {@link AuditLogRecordDataAdapter}.
+   * The {@code InstrumentationScope} is left empty and {@code SeverityNumber} is unset per the
+   * audit logging specification.
    *
-   * <p>Returns synthetic {@link AuditReceipt}s on success. The {@code IntegrityHash} field is
-   * empty in this implementation; a future OTLP response extension will carry the sink-computed
-   * hash.
+   * <p>Returns synthetic {@link AuditReceipt}s on success. The {@code IntegrityHash} field is empty
+   * in this implementation; a future OTLP response extension will carry the sink-computed hash.
    *
-   * <p>Any {@code partial_success} response is treated as a hard failure (all records are
-   * returned in the failure result for retry).
+   * <p>Any {@code partial_success} response is treated as a hard failure (all records are returned
+   * in the failure result for retry).
    */
   @Override
   public AuditExportResult export(Collection<AuditRecordData> records) {
     if (records.isEmpty()) {
-      return AuditExportResult.success(java.util.Collections.emptyList());
+      return AuditExportResult.success(Collections.emptyList());
     }
 
     // Adapt AuditRecordData → LogRecordData for marshaling
@@ -117,7 +112,7 @@ public final class OtlpHttpAuditRecordExporter implements AuditRecordExporter {
 
     if (latch.getCount() > 0) {
       return AuditExportResult.failure(
-          new io.opentelemetry.api.audit.AuditDeliveryException(
+          new AuditDeliveryException(
               "OTLP export timed out waiting for /v1/audit acknowledgement"));
     }
 

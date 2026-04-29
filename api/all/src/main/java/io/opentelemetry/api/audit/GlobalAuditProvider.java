@@ -5,6 +5,7 @@
 
 package io.opentelemetry.api.audit;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -26,7 +27,7 @@ public final class GlobalAuditProvider {
 
   /** Returns the globally registered {@link AuditProvider}, or the no-op instance if none set. */
   public static AuditProvider get() {
-    return globalProvider.get();
+    return Objects.requireNonNull(globalProvider.get());
   }
 
   /**

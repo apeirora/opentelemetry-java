@@ -8,12 +8,16 @@ package io.opentelemetry.exporter.otlp.http.audit;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.audit.AuditRecordData;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
+import io.opentelemetry.sdk.logs.data.Body;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.Base64;
+import java.util.Locale;
 import javax.annotation.Nullable;
 
 /**
@@ -26,21 +30,27 @@ import javax.annotation.Nullable;
  * <ul>
  *   <li>{@code SeverityNumber} MUST remain unset ({@code null}).
  *   <li>{@code InstrumentationScope} MUST be empty.
- *   <li>Mandatory audit fields are stored as {@code Attributes} with well-known keys.
+ *   <li>Mandatory audit fields are stored as {@code Attributes} with {@code audit.*} keys.
  * </ul>
  */
 final class AuditLogRecordDataAdapter implements LogRecordData {
 
-  private static final String ATTR_RECORD_ID = "audit.record_id";
-  private static final String ATTR_ACTOR = "audit.actor";
-  private static final String ATTR_ACTOR_TYPE = "audit.actor_type";
+  // Mandatory attributes – spec section: Audit Semantic Attributes
+  private static final String ATTR_RECORD_ID = "audit.record.id";
+  private static final String ATTR_ACTOR_ID = "audit.actor.id";
+  private static final String ATTR_ACTOR_TYPE = "audit.actor.type";
   private static final String ATTR_ACTION = "audit.action";
   private static final String ATTR_OUTCOME = "audit.outcome";
-  private static final String ATTR_TARGET_RESOURCE = "audit.target_resource";
-  private static final String ATTR_SOURCE_IP = "audit.source_ip";
-  private static final String ATTR_SCHEMA_VERSION = "audit.schema_version";
-  private static final String ATTR_SEQUENCE_NO = "audit.sequence_no";
-  private static final String ATTR_PREV_HASH = "audit.prev_hash";
+
+  // Optional attributes
+  private static final String ATTR_TARGET_ID = "audit.target.id";
+  private static final String ATTR_TARGET_TYPE = "audit.target.type";
+  private static final String ATTR_SOURCE_ID = "audit.source.id";
+  private static final String ATTR_SOURCE_TYPE = "audit.source.type";
+  private static final String ATTR_INTEGRITY_VALUE = "audit.integrity.value";
+  private static final String ATTR_SEQUENCE_NUMBER = "audit.sequence.number";
+  private static final String ATTR_PREV_HASH = "audit.prev.hash";
+  private static final String ATTR_SCHEMA_VERSION = "audit.schema.version";
 
   private final AuditRecordData audit;
   private final Attributes mergedAttributes;
@@ -52,28 +62,52 @@ final class AuditLogRecordDataAdapter implements LogRecordData {
 
   private static Attributes buildAttributes(AuditRecordData a) {
     AttributesBuilder b = Attributes.builder();
-    // Mandatory audit fields as attributes
+
+    // Mandatory audit fields – spec-defined attribute keys and lowercase values
     b.put(AttributeKey.stringKey(ATTR_RECORD_ID), a.getRecordId());
-    b.put(AttributeKey.stringKey(ATTR_ACTOR), a.getActor().asString());
-    b.put(AttributeKey.stringKey(ATTR_ACTOR_TYPE), a.getActorType().name());
+    b.put(AttributeKey.stringKey(ATTR_ACTOR_ID), a.getActorId());
+    b.put(
+        AttributeKey.stringKey(ATTR_ACTOR_TYPE), a.getActorType().name().toLowerCase(Locale.ROOT));
     b.put(AttributeKey.stringKey(ATTR_ACTION), a.getAction());
-    b.put(AttributeKey.stringKey(ATTR_OUTCOME), a.getOutcome().name());
-    // Optional audit fields
-    if (a.getTargetResource() != null) {
-      b.put(AttributeKey.stringKey(ATTR_TARGET_RESOURCE), a.getTargetResource().asString());
+    b.put(AttributeKey.stringKey(ATTR_OUTCOME), a.getOutcome().name().toLowerCase(Locale.ROOT));
+
+    // Optional target attributes
+    if (a.getTargetId() != null) {
+      b.put(AttributeKey.stringKey(ATTR_TARGET_ID), a.getTargetId());
     }
-    if (a.getSourceIp() != null) {
-      b.put(AttributeKey.stringKey(ATTR_SOURCE_IP), a.getSourceIp());
+    if (a.getTargetType() != null) {
+      b.put(AttributeKey.stringKey(ATTR_TARGET_TYPE), a.getTargetType());
     }
-    if (a.getSchemaVersion() != null) {
-      b.put(AttributeKey.stringKey(ATTR_SCHEMA_VERSION), a.getSchemaVersion());
+
+    // Optional source attributes
+    if (a.getSourceId() != null) {
+      b.put(AttributeKey.stringKey(ATTR_SOURCE_ID), a.getSourceId());
     }
+    if (a.getSourceType() != null) {
+      b.put(AttributeKey.stringKey(ATTR_SOURCE_TYPE), a.getSourceType());
+    }
+
+    // Integrity value: base64-encode signature or HMAC into audit.integrity.value
+    byte[] integrityBytes = a.getSignature() != null ? a.getSignature() : a.getHmac();
+    if (integrityBytes != null) {
+      b.put(
+          AttributeKey.stringKey(ATTR_INTEGRITY_VALUE),
+          Base64.getEncoder().encodeToString(integrityBytes));
+    }
+
+    // Ordering attributes
     if (a.getSequenceNo() != 0) {
-      b.put(AttributeKey.longKey(ATTR_SEQUENCE_NO), a.getSequenceNo());
+      b.put(AttributeKey.longKey(ATTR_SEQUENCE_NUMBER), a.getSequenceNo());
     }
     if (a.getPrevHash() != null) {
       b.put(AttributeKey.stringKey(ATTR_PREV_HASH), a.getPrevHash());
     }
+
+    // Schema version
+    if (a.getSchemaVersion() != null) {
+      b.put(AttributeKey.stringKey(ATTR_SCHEMA_VERSION), a.getSchemaVersion());
+    }
+
     // User-supplied attributes (merged last so they can override if needed)
     a.getAttributes()
         .forEach(
@@ -82,6 +116,7 @@ final class AuditLogRecordDataAdapter implements LogRecordData {
               AttributeKey<Object> castKey = (AttributeKey<Object>) key;
               b.put(castKey, value);
             });
+
     return b.build();
   }
 
@@ -111,11 +146,10 @@ final class AuditLogRecordDataAdapter implements LogRecordData {
     return SpanContext.getInvalid();
   }
 
-  /** Audit records do not use severity; always returns {@code null}. */
+  /** Audit records do not use severity. */
   @Override
-  @Nullable
   public Severity getSeverity() {
-    return null;
+    return Severity.UNDEFINED_SEVERITY_NUMBER;
   }
 
   @Override
@@ -125,8 +159,14 @@ final class AuditLogRecordDataAdapter implements LogRecordData {
   }
 
   @Override
+  @Deprecated
+  public Body getBody() {
+    return audit.getBody() != null ? Body.string(audit.getBody().asString()) : Body.empty();
+  }
+
+  @Override
   @Nullable
-  public io.opentelemetry.api.common.Value<?> getBodyValue() {
+  public Value<?> getBodyValue() {
     return audit.getBody();
   }
 

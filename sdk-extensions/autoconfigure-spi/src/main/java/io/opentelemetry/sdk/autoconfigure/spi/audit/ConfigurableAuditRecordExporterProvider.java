@@ -9,9 +9,9 @@ import io.opentelemetry.sdk.audit.AuditRecordExporter;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 /**
- * A service provider interface (SPI) for providing audit record exporters that can be used with
- * the autoconfigured SDK. If the {@code otel.audit.exporter} property contains a value equal to
- * what is returned by {@link #getName()}, the exporter returned by {@link
+ * A service provider interface (SPI) for providing audit record exporters that can be used with the
+ * autoconfigured SDK. If the {@code otel.audit.exporter} property contains a value equal to what is
+ * returned by {@link #getName()}, the exporter returned by {@link
  * #createExporter(ConfigProperties)} will be enabled and added to the audit pipeline.
  *
  * <p>This SPI is at {@code Development} stability; the interface may change in future releases.

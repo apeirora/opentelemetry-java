@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Configures an {@link SdkAuditProvider} from autoconfiguration properties and registers it as
- * the global {@link io.opentelemetry.api.audit.AuditProvider}.
+ * Configures an {@link SdkAuditProvider} from autoconfiguration properties and registers it as the
+ * global {@link io.opentelemetry.api.audit.AuditProvider}.
  *
  * <p>The property {@code otel.audit.exporter} controls which exporter is used (default: {@code
  * otlp}). Use {@code otel.audit.exporter=none} to disable audit logging.
@@ -28,10 +28,7 @@ import java.util.Map;
 final class AuditProviderConfiguration {
 
   static SdkAuditProvider configureAuditProvider(
-      Resource resource,
-      ConfigProperties config,
-      SpiHelper spiHelper,
-      List<Closeable> closeables) {
+      Resource resource, ConfigProperties config, SpiHelper spiHelper, List<Closeable> closeables) {
 
     Map<String, AuditRecordExporter> exportersByName =
         AuditExporterConfiguration.configureAuditRecordExporters(config, spiHelper, closeables);

@@ -5,8 +5,8 @@
 
 package io.opentelemetry.sdk.audit;
 
-import io.opentelemetry.api.audit.AuditReceipt;
 import io.opentelemetry.api.audit.ActorType;
+import io.opentelemetry.api.audit.AuditReceipt;
 import io.opentelemetry.api.audit.Outcome;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -32,12 +32,14 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
   private final long timestampEpochNanos;
   private final long observedTimestampEpochNanos;
   private final String eventName;
-  private final Value<?> actor;
+  private final String actorId;
   private final ActorType actorType;
   private final String action;
   private final Outcome outcome;
-  @Nullable private final Value<?> targetResource;
-  @Nullable private final String sourceIp;
+  @Nullable private final String targetId;
+  @Nullable private final String targetType;
+  @Nullable private final String sourceId;
+  @Nullable private final String sourceType;
   @Nullable private final Value<?> body;
   @Nullable private final byte[] signature;
   @Nullable private final String algorithm;
@@ -68,12 +70,14 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
       long timestampEpochNanos,
       long observedTimestampEpochNanos,
       String eventName,
-      Value<?> actor,
+      String actorId,
       ActorType actorType,
       String action,
       Outcome outcome,
-      @Nullable Value<?> targetResource,
-      @Nullable String sourceIp,
+      @Nullable String targetId,
+      @Nullable String targetType,
+      @Nullable String sourceId,
+      @Nullable String sourceType,
       @Nullable Value<?> body,
       @Nullable AttributesMap attributes,
       @Nullable byte[] signature,
@@ -92,12 +96,14 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
     this.timestampEpochNanos = timestampEpochNanos;
     this.observedTimestampEpochNanos = observedTimestampEpochNanos;
     this.eventName = eventName;
-    this.actor = actor;
+    this.actorId = actorId;
     this.actorType = actorType;
     this.action = action;
     this.outcome = outcome;
-    this.targetResource = targetResource;
-    this.sourceIp = sourceIp;
+    this.targetId = targetId;
+    this.targetType = targetType;
+    this.sourceId = sourceId;
+    this.sourceType = sourceType;
     this.body = body;
     this.attributes = attributes;
     this.signature = signature;
@@ -141,7 +147,7 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
 
   @Override
   public AuditRecordData toAuditRecordData() {
-    final Attributes frozenAttributes;
+    Attributes frozenAttributes;
     synchronized (lock) {
       frozenAttributes = attributes != null ? attributes.immutableCopy() : Attributes.empty();
     }
@@ -154,12 +160,14 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
         timestampEpochNanos,
         observedTimestampEpochNanos,
         eventName,
-        actor,
+        actorId,
         actorType,
         action,
         outcome,
-        targetResource,
-        sourceIp,
+        targetId,
+        targetType,
+        sourceId,
+        sourceType,
         body,
         frozenAttributes,
         signature,
@@ -190,8 +198,8 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
   }
 
   @Override
-  public Value<?> getActor() {
-    return actor;
+  public String getActorId() {
+    return actorId;
   }
 
   @Override

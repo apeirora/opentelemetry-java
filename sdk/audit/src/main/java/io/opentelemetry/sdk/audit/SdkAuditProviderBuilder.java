@@ -19,9 +19,7 @@ public final class SdkAuditProviderBuilder {
 
   SdkAuditProviderBuilder() {}
 
-  /**
-   * Sets the {@link Resource} to be associated with all audit records emitted by this provider.
-   */
+  /** Sets the {@link Resource} to be associated with all audit records emitted by this provider. */
   public SdkAuditProviderBuilder setResource(Resource resource) {
     if (resource == null) {
       throw new NullPointerException("resource");
@@ -40,8 +38,8 @@ public final class SdkAuditProviderBuilder {
   }
 
   /**
-   * Adds an {@link AuditRecordProcessor} to the pipeline. Processors are invoked in the order
-   * they are added.
+   * Adds an {@link AuditRecordProcessor} to the pipeline. Processors are invoked in the order they
+   * are added.
    *
    * <p>The last processor in the chain is responsible for forwarding records to the exporter and
    * setting the {@link io.opentelemetry.api.audit.AuditReceipt} on the record.

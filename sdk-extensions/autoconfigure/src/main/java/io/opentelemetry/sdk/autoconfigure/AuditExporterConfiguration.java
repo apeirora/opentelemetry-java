@@ -39,8 +39,7 @@ final class AuditExporterConfiguration {
       exporterNames = Collections.singleton("otlp");
     }
 
-    NamedSpiManager<AuditRecordExporter> spiManager =
-        auditExporterSpiManager(config, spiHelper);
+    NamedSpiManager<AuditRecordExporter> spiManager = auditExporterSpiManager(config, spiHelper);
 
     Map<String, AuditRecordExporter> map = new HashMap<>();
     for (String name : exporterNames) {

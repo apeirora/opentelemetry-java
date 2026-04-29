@@ -53,7 +53,7 @@ class DefaultAuditLogger implements AuditLogger {
     }
 
     @Override
-    public AuditRecordBuilder setActor(Value<?> actor) {
+    public AuditRecordBuilder setActorId(String actorId) {
       return this;
     }
 
@@ -88,12 +88,22 @@ class DefaultAuditLogger implements AuditLogger {
     }
 
     @Override
-    public AuditRecordBuilder setTargetResource(Value<?> targetResource) {
+    public AuditRecordBuilder setTargetId(String targetId) {
       return this;
     }
 
     @Override
-    public AuditRecordBuilder setSourceIp(String sourceIp) {
+    public AuditRecordBuilder setTargetType(String targetType) {
+      return this;
+    }
+
+    @Override
+    public AuditRecordBuilder setSourceId(String sourceId) {
+      return this;
+    }
+
+    @Override
+    public AuditRecordBuilder setSourceType(String sourceType) {
       return this;
     }
 
