@@ -84,28 +84,14 @@ public interface AuditRecordData {
   /** Returns the attributes attached to this record (never null; may be empty). */
   Attributes getAttributes();
 
-  /** Returns the optional digital signature bytes, or {@code null} if not set. */
+  /**
+   * Returns the raw bytes of the cryptographic integrity proof ({@code audit.integrity.value}), or
+   * {@code null} if not set. The algorithm is carried as the {@code audit.integrity.algorithm}
+   * Resource attribute.
+   */
   @SuppressWarnings("mutable")
   @Nullable
-  byte[] getSignature();
-
-  /** Returns the signature algorithm, or {@code null} if {@link #getSignature()} is not set. */
-  @Nullable
-  String getAlgorithm();
-
-  /** Returns the DER-encoded X.509 certificate, or {@code null} if not set. */
-  @SuppressWarnings("mutable")
-  @Nullable
-  byte[] getCertificate();
-
-  /** Returns the HMAC bytes, or {@code null} if not set. */
-  @SuppressWarnings("mutable")
-  @Nullable
-  byte[] getHmac();
-
-  /** Returns the HMAC algorithm, or {@code null} if {@link #getHmac()} is not set. */
-  @Nullable
-  String getHmacAlgorithm();
+  byte[] getIntegrityValue();
 
   /** Returns the monotonic sequence number for hash-chain continuity, or {@code 0} if not set. */
   long getSequenceNo();

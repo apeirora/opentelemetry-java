@@ -118,17 +118,7 @@ class DefaultAuditLogger implements AuditLogger {
     }
 
     @Override
-    public AuditRecordBuilder setSignature(byte[] signature, String algorithm) {
-      return this;
-    }
-
-    @Override
-    public AuditRecordBuilder setCertificate(byte[] certificate) {
-      return this;
-    }
-
-    @Override
-    public AuditRecordBuilder setHmac(byte[] hmac, String algorithm) {
+    public AuditRecordBuilder setIntegrityValue(byte[] integrityValue) {
       return this;
     }
 

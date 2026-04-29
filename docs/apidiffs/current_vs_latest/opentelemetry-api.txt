@@ -53,9 +53,8 @@ Comparing source compatibility of opentelemetry-api-1.64.0-SNAPSHOT.jar against 
 		GENERIC TEMPLATES: +++ T:java.lang.Object
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setBody(io.opentelemetry.api.common.Value<?>)
 	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.api.audit.AuditRecordBuilder setBody(java.lang.String)
-	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setCertificate(byte[])
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setEventName(java.lang.String)
-	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setHmac(byte[], java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setIntegrityValue(byte[])
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setObservedTimestamp(long, java.util.concurrent.TimeUnit)
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setObservedTimestamp(java.time.Instant)
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setOutcome(io.opentelemetry.api.audit.Outcome)
@@ -63,7 +62,6 @@ Comparing source compatibility of opentelemetry-api-1.64.0-SNAPSHOT.jar against 
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setRecordId(java.lang.String)
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSchemaVersion(java.lang.String)
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSequenceNo(long)
-	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSignature(byte[], java.lang.String)
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSourceId(java.lang.String)
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSourceType(java.lang.String)
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setTargetId(java.lang.String)

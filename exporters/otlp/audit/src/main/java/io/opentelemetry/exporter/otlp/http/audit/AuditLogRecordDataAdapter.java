@@ -87,8 +87,8 @@ final class AuditLogRecordDataAdapter implements LogRecordData {
       b.put(AttributeKey.stringKey(ATTR_SOURCE_TYPE), a.getSourceType());
     }
 
-    // Integrity value: base64-encode signature or HMAC into audit.integrity.value
-    byte[] integrityBytes = a.getSignature() != null ? a.getSignature() : a.getHmac();
+    // Integrity value: base64-encode the proof into audit.integrity.value
+    byte[] integrityBytes = a.getIntegrityValue();
     if (integrityBytes != null) {
       b.put(
           AttributeKey.stringKey(ATTR_INTEGRITY_VALUE),
