@@ -127,25 +127,12 @@ public interface AuditRecordBuilder {
   <T> AuditRecordBuilder setAttribute(AttributeKey<T> key, @Nullable T value);
 
   /**
-   * Sets an asymmetric digital signature over the canonical serialization of this record and the
-   * algorithm used (e.g. {@code "ES256"}). The encoded value is stored as {@code
-   * audit.integrity.value}. MUST NOT be set together with {@link #setHmac(byte[], String)}.
+   * Sets the raw bytes of the cryptographic integrity proof ({@code audit.integrity.value}). The
+   * value is base64-encoded by the SDK before storing as an attribute. The algorithm used to
+   * compute the proof (e.g. {@code "ES256"} or {@code "HMAC-SHA256"}) MUST be declared once via
+   * {@code SdkAuditProviderBuilder.setIntegrityAlgorithm(String)}.
    */
-  AuditRecordBuilder setSignature(byte[] signature, String algorithm);
-
-  /**
-   * Sets the DER-encoded X.509 public-key certificate corresponding to the signing key ({@code
-   * audit.integrity.certificate} Resource attribute). Only meaningful when {@link
-   * #setSignature(byte[], String)} is also set.
-   */
-  AuditRecordBuilder setCertificate(byte[] certificate);
-
-  /**
-   * Sets a symmetric HMAC over the canonical serialization of this record and the algorithm used
-   * (e.g. {@code "HMAC-SHA256"}). The encoded value is stored as {@code audit.integrity.value}.
-   * MUST NOT be set together with {@link #setSignature(byte[], String)}.
-   */
-  AuditRecordBuilder setHmac(byte[] hmac, String algorithm);
+  AuditRecordBuilder setIntegrityValue(byte[] integrityValue);
 
   /**
    * Sets the monotonically increasing sequence number ({@code audit.sequence.number}) for

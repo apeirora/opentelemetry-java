@@ -41,11 +41,7 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
   @Nullable private final String sourceId;
   @Nullable private final String sourceType;
   @Nullable private final Value<?> body;
-  @Nullable private final byte[] signature;
-  @Nullable private final String algorithm;
-  @Nullable private final byte[] certificate;
-  @Nullable private final byte[] hmac;
-  @Nullable private final String hmacAlgorithm;
+  @Nullable private final byte[] integrityValue;
   private final long sequenceNo;
   @Nullable private final String prevHash;
   @Nullable private final String schemaVersion;
@@ -80,11 +76,7 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
       @Nullable String sourceType,
       @Nullable Value<?> body,
       @Nullable AttributesMap attributes,
-      @Nullable byte[] signature,
-      @Nullable String algorithm,
-      @Nullable byte[] certificate,
-      @Nullable byte[] hmac,
-      @Nullable String hmacAlgorithm,
+      @Nullable byte[] integrityValue,
       long sequenceNo,
       @Nullable String prevHash,
       @Nullable String schemaVersion) {
@@ -106,11 +98,7 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
     this.sourceType = sourceType;
     this.body = body;
     this.attributes = attributes;
-    this.signature = signature;
-    this.algorithm = algorithm;
-    this.certificate = certificate;
-    this.hmac = hmac;
-    this.hmacAlgorithm = hmacAlgorithm;
+    this.integrityValue = integrityValue;
     this.sequenceNo = sequenceNo;
     this.prevHash = prevHash;
     this.schemaVersion = schemaVersion;
@@ -170,11 +158,7 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
         sourceType,
         body,
         frozenAttributes,
-        signature,
-        algorithm,
-        certificate,
-        hmac,
-        hmacAlgorithm,
+        integrityValue,
         sequenceNo,
         prevHash,
         schemaVersion);

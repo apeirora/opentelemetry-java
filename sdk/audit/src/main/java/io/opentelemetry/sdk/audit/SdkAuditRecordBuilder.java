@@ -44,11 +44,7 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   @Nullable private String sourceType;
   @Nullable private Value<?> body;
   @Nullable private AttributesMap attributes;
-  @Nullable private byte[] signature;
-  @Nullable private String algorithm;
-  @Nullable private byte[] certificate;
-  @Nullable private byte[] hmac;
-  @Nullable private String hmacAlgorithm;
+  @Nullable private byte[] integrityValue;
   private long sequenceNo;
   @Nullable private String prevHash;
 
@@ -168,22 +164,8 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   }
 
   @Override
-  public SdkAuditRecordBuilder setSignature(byte[] signature, String algorithm) {
-    this.signature = signature;
-    this.algorithm = algorithm;
-    return this;
-  }
-
-  @Override
-  public SdkAuditRecordBuilder setCertificate(byte[] certificate) {
-    this.certificate = certificate;
-    return this;
-  }
-
-  @Override
-  public SdkAuditRecordBuilder setHmac(byte[] hmac, String algorithm) {
-    this.hmac = hmac;
-    this.hmacAlgorithm = algorithm;
+  public SdkAuditRecordBuilder setIntegrityValue(byte[] integrityValue) {
+    this.integrityValue = integrityValue;
     return this;
   }
 
@@ -259,11 +241,7 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
             sourceType,
             body,
             recordAttributes,
-            signature,
-            algorithm,
-            certificate,
-            hmac,
-            hmacAlgorithm,
+            integrityValue,
             sequenceNo,
             prevHash,
             schemaVersion);
