@@ -8,8 +8,8 @@ package io.opentelemetry.sdk.audit;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import java.io.Closeable;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
@@ -18,8 +18,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Interface for hooking into the audit record pipeline for enrichment and forwarding.
  *
  * <p>Processors MUST only add attributes to records (enrichment). They MUST NOT remove mandatory
- * fields, filter records, aggregate records, or introduce sampling. Processors that would remove
- * or filter records are rejected at configuration time by {@link SdkAuditProvider}.
+ * fields, filter records, aggregate records, or introduce sampling. Processors that would remove or
+ * filter records are rejected at configuration time by {@link SdkAuditProvider}.
  */
 @ThreadSafe
 public interface AuditRecordProcessor extends Closeable {

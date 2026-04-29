@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 
 /** Immutable AutoValue implementation of {@link AuditRecordData}. */
 @AutoValue
+@SuppressWarnings("AutoValueMutable")
 public abstract class SdkAuditRecordData implements AuditRecordData {
 
   SdkAuditRecordData() {}
@@ -30,12 +31,14 @@ public abstract class SdkAuditRecordData implements AuditRecordData {
       long timestampEpochNanos,
       long observedTimestampEpochNanos,
       String eventName,
-      Value<?> actor,
+      String actorId,
       ActorType actorType,
       String action,
       Outcome outcome,
-      @Nullable Value<?> targetResource,
-      @Nullable String sourceIp,
+      @Nullable String targetId,
+      @Nullable String targetType,
+      @Nullable String sourceId,
+      @Nullable String sourceType,
       @Nullable Value<?> body,
       Attributes attributes,
       @Nullable byte[] signature,
@@ -55,12 +58,14 @@ public abstract class SdkAuditRecordData implements AuditRecordData {
         timestampEpochNanos,
         observedTimestampEpochNanos,
         eventName,
-        actor,
+        actorId,
         actorType,
         action,
         outcome,
-        targetResource,
-        sourceIp,
+        targetId,
+        targetType,
+        sourceId,
+        sourceType,
         body,
         attributes,
         signature,

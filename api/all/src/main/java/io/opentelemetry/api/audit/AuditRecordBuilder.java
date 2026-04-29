@@ -28,8 +28,9 @@ public interface AuditRecordBuilder {
   // ── Required fields ──────────────────────────────────────────────────────
 
   /**
-   * Sets the caller-generated unique identifier for this record. If not set, the SDK MUST generate
-   * a UUID v4. The value MUST remain stable across retries of the same event.
+   * Sets the caller-generated unique identifier for this record ({@code audit.record.id}). If not
+   * set, the SDK MUST generate a UUID v4. The value MUST remain stable across retries of the same
+   * event.
    */
   AuditRecordBuilder setRecordId(String recordId);
 
@@ -44,34 +45,28 @@ public interface AuditRecordBuilder {
   AuditRecordBuilder setTimestamp(Instant instant);
 
   /**
-   * Sets the semantic name that uniquely identifies the type of audit event, e.g. {@code
-   * "user.login.success"}. MUST be non-empty and stable across releases.
+   * Sets the semantic name that uniquely identifies the type of audit event ({@code EventName}),
+   * e.g. {@code "user.login.success"}. MUST be non-empty and stable across releases.
    */
   AuditRecordBuilder setEventName(String eventName);
 
   /**
-   * Sets the identity of the entity that performed the auditable action.
+   * Sets the identity of the entity that performed the auditable action ({@code audit.actor.id}).
    *
-   * <p>MAY be a structured value. If the actor cannot be determined, set to a sentinel such as
-   * {@code "anonymous"}.
+   * <p>If the actor cannot be determined, set to a sentinel such as {@code "anonymous"}.
    */
-  AuditRecordBuilder setActor(Value<?> actor);
+  AuditRecordBuilder setActorId(String actorId);
 
-  /** Convenience overload of {@link #setActor(Value)} accepting a plain string. */
-  default AuditRecordBuilder setActor(String actor) {
-    return setActor(Value.of(actor));
-  }
-
-  /** Sets the type of the actor. */
+  /** Sets the type of the actor ({@code audit.actor.type}). */
   AuditRecordBuilder setActorType(ActorType actorType);
 
   /**
-   * Sets the verb that describes what the actor did, e.g. {@code "LOGIN"}, {@code "READ"}, {@code
-   * "DELETE"}. MUST be non-empty and stable across releases.
+   * Sets the verb that describes what the actor did ({@code audit.action}), e.g. {@code "LOGIN"},
+   * {@code "READ"}, {@code "DELETE"}. MUST be non-empty and stable across releases.
    */
   AuditRecordBuilder setAction(String action);
 
-  /** Sets the result of the auditable action. */
+  /** Sets the result of the auditable action ({@code audit.outcome}). */
   AuditRecordBuilder setOutcome(Outcome outcome);
 
   // ── Optional fields ───────────────────────────────────────────────────────
@@ -85,17 +80,35 @@ public interface AuditRecordBuilder {
   /** Sets the epoch observed-timestamp using the given {@link Instant}. */
   AuditRecordBuilder setObservedTimestamp(Instant instant);
 
-  /** Sets the schema version of the audit payload, e.g. {@code "1.0.0"}. */
+  /**
+   * Sets the schema version of the audit payload ({@code audit.schema.version}), e.g. {@code
+   * "1.0.0"}.
+   */
   AuditRecordBuilder setSchemaVersion(String schemaVersion);
 
   /**
-   * Sets the object upon which the action was performed, e.g. a file path, database row, or
-   * structured resource descriptor.
+   * Sets the identifier of the resource acted upon ({@code audit.target.id}), e.g. a file path,
+   * REST endpoint, or database table name.
    */
-  AuditRecordBuilder setTargetResource(Value<?> targetResource);
+  AuditRecordBuilder setTargetId(String targetId);
 
-  /** Sets the source network address of the auditable action, e.g. {@code "203.0.113.42"}. */
-  AuditRecordBuilder setSourceIp(String sourceIp);
+  /**
+   * Sets the type of the target resource ({@code audit.target.type}), e.g. {@code "file"}, {@code
+   * "http.endpoint"}, {@code "k8s.configmap"}.
+   */
+  AuditRecordBuilder setTargetType(String targetType);
+
+  /**
+   * Sets the network address or identifier of the source ({@code audit.source.id}), e.g. {@code
+   * "203.0.113.42"}.
+   */
+  AuditRecordBuilder setSourceId(String sourceId);
+
+  /**
+   * Sets the type of the source address ({@code audit.source.type}), e.g. {@code "ipv4"}, {@code
+   * "ipv6"}, {@code "hostname"}.
+   */
+  AuditRecordBuilder setSourceType(String sourceType);
 
   /** Sets free-form additional information about the audit event. */
   AuditRecordBuilder setBody(Value<?> body);
@@ -106,8 +119,8 @@ public interface AuditRecordBuilder {
   }
 
   /**
-   * Sets an attribute on this record. If the record already contains a mapping for the key, the
-   * old value is replaced.
+   * Sets an attribute on this record. If the record already contains a mapping for the key, the old
+   * value is replaced.
    *
    * <p>Providing a {@code null} value is a no-op and does not remove previously set values.
    */
@@ -115,32 +128,34 @@ public interface AuditRecordBuilder {
 
   /**
    * Sets an asymmetric digital signature over the canonical serialization of this record and the
-   * algorithm used (e.g. {@code "ES256"}). MUST NOT be set together with {@link
-   * #setHmac(byte[], String)}.
+   * algorithm used (e.g. {@code "ES256"}). The encoded value is stored as {@code
+   * audit.integrity.value}. MUST NOT be set together with {@link #setHmac(byte[], String)}.
    */
   AuditRecordBuilder setSignature(byte[] signature, String algorithm);
 
   /**
-   * Sets the DER-encoded X.509 public-key certificate corresponding to the signing key. Only
-   * meaningful when {@link #setSignature(byte[], String)} is also set.
+   * Sets the DER-encoded X.509 public-key certificate corresponding to the signing key ({@code
+   * audit.integrity.certificate} Resource attribute). Only meaningful when {@link
+   * #setSignature(byte[], String)} is also set.
    */
   AuditRecordBuilder setCertificate(byte[] certificate);
 
   /**
    * Sets a symmetric HMAC over the canonical serialization of this record and the algorithm used
-   * (e.g. {@code "HMAC-SHA256"}). MUST NOT be set together with {@link
-   * #setSignature(byte[], String)}.
+   * (e.g. {@code "HMAC-SHA256"}). The encoded value is stored as {@code audit.integrity.value}.
+   * MUST NOT be set together with {@link #setSignature(byte[], String)}.
    */
   AuditRecordBuilder setHmac(byte[] hmac, String algorithm);
 
   /**
-   * Sets the monotonically increasing sequence number for hash-chain continuity. When set,
-   * receivers can detect gaps that indicate lost or deleted records.
+   * Sets the monotonically increasing sequence number ({@code audit.sequence.number}) for
+   * hash-chain continuity. When set, receivers can detect gaps that indicate lost or deleted
+   * records.
    */
   AuditRecordBuilder setSequenceNo(long sequenceNo);
 
   /**
-   * Sets the {@code IntegrityHash} of the immediately preceding record in the same audit stream,
+   * Sets the {@code audit.prev.hash} of the immediately preceding record in the same audit stream,
    * enabling hash-chain validation.
    */
   AuditRecordBuilder setPrevHash(String prevHash);

@@ -46,8 +46,7 @@ import java.util.logging.Logger;
  */
 public final class BatchAuditRecordProcessor implements AuditRecordProcessor {
 
-  private static final Logger logger =
-      Logger.getLogger(BatchAuditRecordProcessor.class.getName());
+  private static final Logger logger = Logger.getLogger(BatchAuditRecordProcessor.class.getName());
 
   private final AuditRecordExporter exporter;
   private final int maxExportBatchSize;
@@ -58,7 +57,6 @@ public final class BatchAuditRecordProcessor implements AuditRecordProcessor {
 
   // Queue of pending records. BlockingQueue to apply back-pressure when full.
   private final BlockingQueue<PendingRecord> queue;
-  private final int maxQueueSize;
 
   private final AtomicBoolean isShutdown = new AtomicBoolean(false);
   private final AtomicReference<CompletableResultCode> flushRequested = new AtomicReference<>();
@@ -75,7 +73,6 @@ public final class BatchAuditRecordProcessor implements AuditRecordProcessor {
       int maxRetryCount,
       long initialBackoffMillis) {
     this.exporter = exporter;
-    this.maxQueueSize = maxQueueSize;
     this.maxExportBatchSize = maxExportBatchSize;
     this.scheduledDelayMillis = scheduledDelayMillis;
     this.exportTimeoutMillis = exportTimeoutMillis;
@@ -128,7 +125,7 @@ public final class BatchAuditRecordProcessor implements AuditRecordProcessor {
       if (cause instanceof AuditDeliveryException) {
         throw (AuditDeliveryException) cause;
       }
-      throw new AuditDeliveryException("Audit export failed", cause);
+      throw new AuditDeliveryException("Audit export failed", cause != null ? cause : e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new AuditDeliveryException("Interrupted while waiting for audit export", e);
@@ -141,11 +138,7 @@ public final class BatchAuditRecordProcessor implements AuditRecordProcessor {
       return CompletableResultCode.ofSuccess();
     }
     CompletableResultCode result = forceFlush();
-    result.whenComplete(
-        () -> {
-          worker.interrupt();
-          exporter.shutdown();
-        });
+    result.whenComplete(exporter::shutdown);
     return result;
   }
 
@@ -202,15 +195,20 @@ public final class BatchAuditRecordProcessor implements AuditRecordProcessor {
           if (receipt != null) {
             batch.get(i).future.complete(receipt);
           } else {
-            batch.get(i).future.completeExceptionally(
-                new AuditDeliveryException("Exporter returned no receipt for record " + i));
+            batch
+                .get(i)
+                .future
+                .completeExceptionally(
+                    new AuditDeliveryException("Exporter returned no receipt for record " + i));
           }
         }
       } else {
         AuditDeliveryException ex =
             new AuditDeliveryException(
                 "Audit export failed after " + maxRetryCount + " retries",
-                result.getFailure());
+                result.getFailure() != null
+                    ? result.getFailure()
+                    : new IllegalStateException("Audit export failed without cause"));
         for (PendingRecord p : batch) {
           p.future.completeExceptionally(ex);
         }

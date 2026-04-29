@@ -8,6 +8,7 @@ package io.opentelemetry.sdk.audit;
 import io.opentelemetry.api.audit.AuditReceipt;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * The synchronous result of an {@link AuditRecordExporter#export} call.
@@ -20,9 +21,10 @@ public final class AuditExportResult {
 
   private final boolean success;
   private final List<AuditReceipt> receipts;
-  private final Throwable failure;
+  @Nullable private final Throwable failure;
 
-  private AuditExportResult(boolean success, List<AuditReceipt> receipts, Throwable failure) {
+  private AuditExportResult(
+      boolean success, List<AuditReceipt> receipts, @Nullable Throwable failure) {
     this.success = success;
     this.receipts = receipts;
     this.failure = failure;
@@ -30,17 +32,17 @@ public final class AuditExportResult {
 
   /** Creates a successful result with the given receipts. */
   public static AuditExportResult success(List<AuditReceipt> receipts) {
-    return new AuditExportResult(true, Collections.unmodifiableList(receipts), null);
+    return new AuditExportResult(/* success= */ true, Collections.unmodifiableList(receipts), null);
   }
 
   /** Creates a failure result with the given cause. */
   public static AuditExportResult failure(Throwable cause) {
-    return new AuditExportResult(false, Collections.emptyList(), cause);
+    return new AuditExportResult(/* success= */ false, Collections.emptyList(), cause);
   }
 
   /** Creates a failure result without a specific cause. */
   public static AuditExportResult failure() {
-    return new AuditExportResult(false, Collections.emptyList(), null);
+    return new AuditExportResult(/* success= */ false, Collections.emptyList(), null);
   }
 
   /** Returns {@code true} if all records were successfully acknowledged by the audit sink. */
@@ -49,17 +51,18 @@ public final class AuditExportResult {
   }
 
   /**
-   * Returns the {@link AuditReceipt}s returned by the audit sink, one per exported record. Empty
-   * if {@link #isSuccess()} is {@code false}.
+   * Returns the {@link AuditReceipt}s returned by the audit sink, one per exported record. Empty if
+   * {@link #isSuccess()} is {@code false}.
    */
   public List<AuditReceipt> getReceipts() {
     return receipts;
   }
 
   /**
-   * Returns the cause of the failure, or {@code null} if the failure has no associated throwable
-   * or if the export succeeded.
+   * Returns the cause of the failure, or {@code null} if the failure has no associated throwable or
+   * if the export succeeded.
    */
+  @Nullable
   public Throwable getFailure() {
     return failure;
   }

@@ -15,6 +15,7 @@ import io.opentelemetry.api.common.Value;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.internal.AttributesMap;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -29,7 +30,7 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   @Nullable private String recordId;
   private long timestampEpochNanos;
   @Nullable private String eventName;
-  @Nullable private Value<?> actor;
+  @Nullable private String actorId;
   @Nullable private ActorType actorType;
   @Nullable private String action;
   @Nullable private Outcome outcome;
@@ -37,8 +38,10 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   // Optional fields
   private long observedTimestampEpochNanos;
   @Nullable private String schemaVersion;
-  @Nullable private Value<?> targetResource;
-  @Nullable private String sourceIp;
+  @Nullable private String targetId;
+  @Nullable private String targetType;
+  @Nullable private String sourceId;
+  @Nullable private String sourceType;
   @Nullable private Value<?> body;
   @Nullable private AttributesMap attributes;
   @Nullable private byte[] signature;
@@ -80,8 +83,8 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   }
 
   @Override
-  public SdkAuditRecordBuilder setActor(Value<?> actor) {
-    this.actor = actor;
+  public SdkAuditRecordBuilder setActorId(String actorId) {
+    this.actorId = actorId;
     return this;
   }
 
@@ -123,14 +126,26 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   }
 
   @Override
-  public SdkAuditRecordBuilder setTargetResource(Value<?> targetResource) {
-    this.targetResource = targetResource;
+  public SdkAuditRecordBuilder setTargetId(String targetId) {
+    this.targetId = targetId;
     return this;
   }
 
   @Override
-  public SdkAuditRecordBuilder setSourceIp(String sourceIp) {
-    this.sourceIp = sourceIp;
+  public SdkAuditRecordBuilder setTargetType(String targetType) {
+    this.targetType = targetType;
+    return this;
+  }
+
+  @Override
+  public SdkAuditRecordBuilder setSourceId(String sourceId) {
+    this.sourceId = sourceId;
+    return this;
+  }
+
+  @Override
+  public SdkAuditRecordBuilder setSourceType(String sourceType) {
+    this.sourceType = sourceType;
     return this;
   }
 
@@ -203,11 +218,22 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
 
     // Step 3: Validate required fields
     validateRequired("Timestamp", timestampEpochNanos != 0, "Timestamp must be set");
-    validateRequired("EventName", eventName != null && !eventName.isEmpty(), "EventName must be set and non-empty");
-    validateRequired("Actor", actor != null, "Actor must be set");
+    validateRequired(
+        "EventName",
+        eventName != null && !eventName.isEmpty(),
+        "EventName must be set and non-empty");
+    validateRequired(
+        "ActorId", actorId != null && !actorId.isEmpty(), "ActorId must be set and non-empty");
     validateRequired("ActorType", actorType != null, "ActorType must be set");
-    validateRequired("Action", action != null && !action.isEmpty(), "Action must be set and non-empty");
+    validateRequired(
+        "Action", action != null && !action.isEmpty(), "Action must be set and non-empty");
     validateRequired("Outcome", outcome != null, "Outcome must be set");
+
+    String validatedEventName = Objects.requireNonNull(eventName);
+    String validatedActorId = Objects.requireNonNull(actorId);
+    ActorType validatedActorType = Objects.requireNonNull(actorType);
+    String validatedAction = Objects.requireNonNull(action);
+    Outcome validatedOutcome = Objects.requireNonNull(outcome);
 
     // Step 4+5: Create the mutable record and pass it through all processors.
     // Transfer ownership of the attributes map to the record (builder must not be reused).
@@ -222,13 +248,15 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
             recordId,
             timestampEpochNanos,
             observedTimestampEpochNanos,
-            eventName,
-            actor,
-            actorType,
-            action,
-            outcome,
-            targetResource,
-            sourceIp,
+            validatedEventName,
+            validatedActorId,
+            validatedActorType,
+            validatedAction,
+            validatedOutcome,
+            targetId,
+            targetType,
+            sourceId,
+            sourceType,
             body,
             recordAttributes,
             signature,

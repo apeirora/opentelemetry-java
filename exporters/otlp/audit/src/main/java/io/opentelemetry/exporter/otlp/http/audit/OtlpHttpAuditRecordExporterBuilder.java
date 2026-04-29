@@ -9,9 +9,8 @@ import static io.opentelemetry.api.internal.Utils.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import io.opentelemetry.exporter.internal.http.HttpExporterBuilder;
-import io.opentelemetry.exporter.otlp.internal.OtlpUserAgent;
 import io.opentelemetry.sdk.common.export.RetryPolicy;
-import io.opentelemetry.sdk.common.internal.ComponentId;
+import io.opentelemetry.sdk.common.internal.StandardComponentId;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -26,15 +25,13 @@ import javax.net.ssl.X509TrustManager;
  */
 public final class OtlpHttpAuditRecordExporterBuilder {
 
-  private static final ComponentId COMPONENT_ID =
-      ComponentId.generateLazy("otlp_http_audit_exporter");
-
   private final HttpExporterBuilder delegate;
 
   OtlpHttpAuditRecordExporterBuilder() {
     this.delegate =
-        new HttpExporterBuilder(COMPONENT_ID, OtlpHttpAuditRecordExporter.DEFAULT_ENDPOINT);
-    OtlpUserAgent.addUserAgentHeader(delegate::addConstantHeaders);
+        new HttpExporterBuilder(
+            StandardComponentId.ExporterType.OTLP_HTTP_LOG_EXPORTER,
+            OtlpHttpAuditRecordExporter.DEFAULT_ENDPOINT);
   }
 
   OtlpHttpAuditRecordExporterBuilder(HttpExporterBuilder delegate) {

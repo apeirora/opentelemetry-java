@@ -49,25 +49,33 @@ public interface AuditRecordData {
   /** Returns the semantic name of the audit event, e.g. {@code "user.login.success"}. */
   String getEventName();
 
-  /** Returns the identity of the actor that performed the action. */
-  Value<?> getActor();
+  /** Returns the identity of the actor ({@code audit.actor.id}). */
+  String getActorId();
 
-  /** Returns the type of the actor. */
+  /** Returns the type of the actor ({@code audit.actor.type}). */
   ActorType getActorType();
 
-  /** Returns the action verb, e.g. {@code "LOGIN"}, {@code "DELETE"}. */
+  /** Returns the action verb ({@code audit.action}), e.g. {@code "LOGIN"}, {@code "DELETE"}. */
   String getAction();
 
-  /** Returns the outcome of the action. */
+  /** Returns the outcome of the action ({@code audit.outcome}). */
   Outcome getOutcome();
 
-  /** Returns the target resource of the action, or {@code null} if not set. */
+  /** Returns the {@code audit.target.id}, or {@code null} if not set. */
   @Nullable
-  Value<?> getTargetResource();
+  String getTargetId();
 
-  /** Returns the source IP address, or {@code null} if not set. */
+  /** Returns the {@code audit.target.type}, or {@code null} if not set. */
   @Nullable
-  String getSourceIp();
+  String getTargetType();
+
+  /** Returns the {@code audit.source.id}, or {@code null} if not set. */
+  @Nullable
+  String getSourceId();
+
+  /** Returns the {@code audit.source.type}, or {@code null} if not set. */
+  @Nullable
+  String getSourceType();
 
   /** Returns the free-form body, or {@code null} if not set. */
   @Nullable
@@ -77,6 +85,7 @@ public interface AuditRecordData {
   Attributes getAttributes();
 
   /** Returns the optional digital signature bytes, or {@code null} if not set. */
+  @SuppressWarnings("mutable")
   @Nullable
   byte[] getSignature();
 
@@ -85,10 +94,12 @@ public interface AuditRecordData {
   String getAlgorithm();
 
   /** Returns the DER-encoded X.509 certificate, or {@code null} if not set. */
+  @SuppressWarnings("mutable")
   @Nullable
   byte[] getCertificate();
 
   /** Returns the HMAC bytes, or {@code null} if not set. */
+  @SuppressWarnings("mutable")
   @Nullable
   byte[] getHmac();
 
@@ -96,17 +107,17 @@ public interface AuditRecordData {
   @Nullable
   String getHmacAlgorithm();
 
-  /**
-   * Returns the monotonic sequence number for hash-chain continuity, or {@code 0} if not set.
-   */
+  /** Returns the monotonic sequence number for hash-chain continuity, or {@code 0} if not set. */
   long getSequenceNo();
 
-  /** Returns the {@code IntegrityHash} of the preceding record for hash-chain linking, or {@code
-   * null} if not set. */
+  /**
+   * Returns the {@code audit.prev.hash} of the preceding record for hash-chain linking, or {@code
+   * null} if not set.
+   */
   @Nullable
   String getPrevHash();
 
-  /** Returns the schema version of the audit payload, or {@code null} if not set. */
+  /** Returns the {@code audit.schema.version}, or {@code null} if not set. */
   @Nullable
   String getSchemaVersion();
 }

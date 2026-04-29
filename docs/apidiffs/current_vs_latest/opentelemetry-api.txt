@@ -1,2 +1,89 @@
 Comparing source compatibility of opentelemetry-api-1.62.0-SNAPSHOT.jar against opentelemetry-api-1.61.0.jar
-No changes.
++++  NEW ENUM: PUBLIC(+) FINAL(+) io.opentelemetry.api.audit.ActorType  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW INTERFACE: java.lang.constant.Constable
+	+++  NEW INTERFACE: java.lang.Comparable
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.Enum
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) io.opentelemetry.api.audit.ActorType SYSTEM
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) io.opentelemetry.api.audit.ActorType SERVICE
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) io.opentelemetry.api.audit.ActorType USER
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.ActorType valueOf(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.ActorType[] values()
++++  NEW CLASS: PUBLIC(+) FINAL(+) io.opentelemetry.api.audit.AuditDeliveryException  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.RuntimeException
+	+++  NEW CONSTRUCTOR: PUBLIC(+) AuditDeliveryException(java.lang.String)
+	+++  NEW CONSTRUCTOR: PUBLIC(+) AuditDeliveryException(java.lang.String, java.lang.Throwable)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditLogger  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder auditRecordBuilder()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditLoggerBuilder  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditLogger build()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditLoggerBuilder setInstrumentationVersion(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditLoggerBuilder setSchemaUrl(java.lang.String)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditProvider  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditLoggerBuilder auditLoggerBuilder(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.api.audit.AuditLogger get(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.AuditProvider noop()
++++  NEW CLASS: PUBLIC(+) FINAL(+) io.opentelemetry.api.audit.AuditReceipt  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.AuditReceipt create(java.lang.String, java.lang.String, long)
+	+++  NEW METHOD: PUBLIC(+) boolean equals(java.lang.Object)
+	+++  NEW METHOD: PUBLIC(+) int hashCode()
+	+++  NEW METHOD: PUBLIC(+) java.lang.String integrityHash()
+	+++  NEW METHOD: PUBLIC(+) java.lang.String recordId()
+	+++  NEW METHOD: PUBLIC(+) long sinkTimestampEpochNanos()
+	+++  NEW METHOD: PUBLIC(+) java.lang.String toString()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditReceipt emit()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setAction(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setActorId(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setActorType(io.opentelemetry.api.audit.ActorType)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setAttribute(io.opentelemetry.api.common.AttributeKey<T>, java.lang.Object)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setBody(io.opentelemetry.api.common.Value<?>)
+	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.api.audit.AuditRecordBuilder setBody(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setCertificate(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setEventName(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setHmac(byte[], java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setObservedTimestamp(long, java.util.concurrent.TimeUnit)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setObservedTimestamp(java.time.Instant)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setOutcome(io.opentelemetry.api.audit.Outcome)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setPrevHash(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setRecordId(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSchemaVersion(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSequenceNo(long)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSignature(byte[], java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSourceId(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setSourceType(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setTargetId(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setTargetType(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setTimestamp(long, java.util.concurrent.TimeUnit)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditRecordBuilder setTimestamp(java.time.Instant)
++++  NEW CLASS: PUBLIC(+) FINAL(+) io.opentelemetry.api.audit.GlobalAuditProvider  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.AuditProvider get()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) void resetForTest()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) void set(io.opentelemetry.api.audit.AuditProvider)
++++  NEW ENUM: PUBLIC(+) FINAL(+) io.opentelemetry.api.audit.Outcome  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
+	+++  NEW INTERFACE: java.lang.constant.Constable
+	+++  NEW INTERFACE: java.lang.Comparable
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.Enum
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) io.opentelemetry.api.audit.Outcome SUCCESS
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) io.opentelemetry.api.audit.Outcome UNKNOWN
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) io.opentelemetry.api.audit.Outcome FAILURE
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.Outcome valueOf(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.Outcome[] values()

@@ -6,7 +6,6 @@
 package io.opentelemetry.sdk.audit;
 
 import io.opentelemetry.api.audit.AuditDeliveryException;
-import io.opentelemetry.api.audit.AuditLogger;
 import io.opentelemetry.api.audit.AuditLoggerBuilder;
 import io.opentelemetry.api.audit.AuditProvider;
 import io.opentelemetry.sdk.common.Clock;
@@ -163,8 +162,12 @@ public final class SdkAuditProvider implements AuditProvider, Closeable {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof AuditLoggerKey)) return false;
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof AuditLoggerKey)) {
+        return false;
+      }
       AuditLoggerKey other = (AuditLoggerKey) obj;
       return name.equals(other.name)
           && Objects.equals(version, other.version)
