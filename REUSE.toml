@@ -1,0 +1,16 @@
+version = 1
+SPDX-PackageName = "OpenTelemetry Java"
+SPDX-PackageSupplier = "opentelemetry-java@googlegroups.com"
+SPDX-PackageDownloadLocation = "https://github.com/open-telemetry/opentelemetry-java"
+
+[[annotations]]
+path = "gradle/wrapper/gradle-wrapper.jar"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright Gradle, Inc."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright The OpenTelemetry Authors"
+SPDX-License-Identifier = "Apache-2.0"
