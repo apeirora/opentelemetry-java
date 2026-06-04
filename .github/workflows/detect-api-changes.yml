@@ -22,8 +22,8 @@ jobs:
         id: otelbot-token
         with:
           permission-pull-requests: write
-          app-id: ${{ vars.OTELBOT_APP_ID }}
-          private-key: ${{ secrets.OTELBOT_PRIVATE_KEY }}
+          app-id: ${{ vars.APEIRORA_BOT_APP_ID }}
+          private-key: ${{ secrets.APEIRORA_BOT_PRIVATE_KEY }}
 
       - name: Check for API changes and update PR
         env:
