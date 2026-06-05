@@ -8,7 +8,7 @@ package io.opentelemetry.exporter.otlp.http.audit;
 import static io.opentelemetry.api.internal.Utils.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import io.opentelemetry.exporter.internal.http.HttpExporterBuilder;
+import io.opentelemetry.exporter.otlp.internal.HttpExporterBuilder;
 import io.opentelemetry.sdk.common.export.RetryPolicy;
 import io.opentelemetry.sdk.common.internal.StandardComponentId;
 import java.time.Duration;
