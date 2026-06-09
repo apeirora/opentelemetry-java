@@ -347,8 +347,7 @@ class SdkAuditProviderTest {
     InMemoryAuditRecordExporter exp = InMemoryAuditRecordExporter.create();
     AuditRecordProcessor enricher =
         (ctx, record) ->
-            record.setAttribute(
-                AttributeKey.stringKey("enriched.by"), "test-processor");
+            record.setAttribute(AttributeKey.stringKey("enriched.by"), "test-processor");
     try (SdkAuditProvider p =
         SdkAuditProvider.builder()
             .addAuditRecordProcessor(enricher)

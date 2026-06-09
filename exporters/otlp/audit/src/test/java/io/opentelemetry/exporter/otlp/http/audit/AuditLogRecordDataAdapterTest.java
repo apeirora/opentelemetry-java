@@ -7,11 +7,11 @@ package io.opentelemetry.exporter.otlp.http.audit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.opentelemetry.api.audit.ActorType;
+import io.opentelemetry.api.audit.Outcome;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.Value;
-import io.opentelemetry.api.audit.ActorType;
-import io.opentelemetry.api.audit.Outcome;
 import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.sdk.audit.AuditRecordData;
 import io.opentelemetry.sdk.audit.SdkAuditRecordData;
@@ -42,11 +42,28 @@ class AuditLogRecordDataAdapterTest {
   void actorType_isLowercase() {
     AuditRecordData data =
         SdkAuditRecordData.create(
-            Resource.getDefault(), "test", null, null,
-            "id1", TIMESTAMP_NANOS, OBSERVED_NANOS,
-            "test.event", "svc-1", ActorType.SERVICE,
-            "CREATE", Outcome.SUCCESS,
-            null, null, null, null, null, Attributes.empty(), null, 0, null, null);
+            Resource.getDefault(),
+            "test",
+            null,
+            null,
+            "id1",
+            TIMESTAMP_NANOS,
+            OBSERVED_NANOS,
+            "test.event",
+            "svc-1",
+            ActorType.SERVICE,
+            "CREATE",
+            Outcome.SUCCESS,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Attributes.empty(),
+            null,
+            0,
+            null,
+            null);
     LogRecordData adapted = new AuditLogRecordDataAdapter(data);
     assertThat(adapted.getAttributes().get(AttributeKey.stringKey("audit.actor.type")))
         .isEqualTo("service");
@@ -56,11 +73,28 @@ class AuditLogRecordDataAdapterTest {
   void outcome_isLowercase() {
     AuditRecordData data =
         SdkAuditRecordData.create(
-            Resource.getDefault(), "test", null, null,
-            "id2", TIMESTAMP_NANOS, OBSERVED_NANOS,
-            "test.event", "sys", ActorType.SYSTEM,
-            "REBOOT", Outcome.FAILURE,
-            null, null, null, null, null, Attributes.empty(), null, 0, null, null);
+            Resource.getDefault(),
+            "test",
+            null,
+            null,
+            "id2",
+            TIMESTAMP_NANOS,
+            OBSERVED_NANOS,
+            "test.event",
+            "sys",
+            ActorType.SYSTEM,
+            "REBOOT",
+            Outcome.FAILURE,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Attributes.empty(),
+            null,
+            0,
+            null,
+            null);
     LogRecordData adapted = new AuditLogRecordDataAdapter(data);
     assertThat(adapted.getAttributes().get(AttributeKey.stringKey("audit.outcome")))
         .isEqualTo("failure");
@@ -70,14 +104,28 @@ class AuditLogRecordDataAdapterTest {
   void optionalAttributes_mappedWhenPresent() {
     AuditRecordData data =
         SdkAuditRecordData.create(
-            Resource.getDefault(), "test", null, null,
-            "id3", TIMESTAMP_NANOS, OBSERVED_NANOS,
-            "resource.access", "u1", ActorType.USER,
-            "READ", Outcome.SUCCESS,
-            "/api/data/123", "http.endpoint",
-            "10.0.0.1", "ipv4",
+            Resource.getDefault(),
+            "test",
+            null,
+            null,
+            "id3",
+            TIMESTAMP_NANOS,
+            OBSERVED_NANOS,
+            "resource.access",
+            "u1",
+            ActorType.USER,
+            "READ",
+            Outcome.SUCCESS,
+            "/api/data/123",
+            "http.endpoint",
+            "10.0.0.1",
+            "ipv4",
             Value.of("body text"),
-            Attributes.empty(), null, 42L, "prevhash123", "1.0.0");
+            Attributes.empty(),
+            null,
+            42L,
+            "prevhash123",
+            "1.0.0");
     LogRecordData adapted = new AuditLogRecordDataAdapter(data);
     Attributes attrs = adapted.getAttributes();
 
@@ -95,11 +143,28 @@ class AuditLogRecordDataAdapterTest {
     byte[] proof = new byte[] {0x01, 0x02, 0x03};
     AuditRecordData data =
         SdkAuditRecordData.create(
-            Resource.getDefault(), "test", null, null,
-            "id4", TIMESTAMP_NANOS, OBSERVED_NANOS,
-            "signed.event", "svc", ActorType.SERVICE,
-            "SIGN", Outcome.SUCCESS,
-            null, null, null, null, null, Attributes.empty(), proof, 0, null, null);
+            Resource.getDefault(),
+            "test",
+            null,
+            null,
+            "id4",
+            TIMESTAMP_NANOS,
+            OBSERVED_NANOS,
+            "signed.event",
+            "svc",
+            ActorType.SERVICE,
+            "SIGN",
+            Outcome.SUCCESS,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Attributes.empty(),
+            proof,
+            0,
+            null,
+            null);
     LogRecordData adapted = new AuditLogRecordDataAdapter(data);
     String encoded = adapted.getAttributes().get(AttributeKey.stringKey("audit.integrity.value"));
     assertThat(encoded).isEqualTo(Base64.getEncoder().encodeToString(proof));
@@ -114,8 +179,7 @@ class AuditLogRecordDataAdapterTest {
   @Test
   void severityNumber_isUndefined() {
     LogRecordData adapted = new AuditLogRecordDataAdapter(buildMinimal());
-    assertThat(adapted.getSeverity())
-        .isEqualTo(Severity.UNDEFINED_SEVERITY_NUMBER);
+    assertThat(adapted.getSeverity()).isEqualTo(Severity.UNDEFINED_SEVERITY_NUMBER);
     assertThat(adapted.getSeverityText()).isNull();
   }
 
@@ -137,11 +201,28 @@ class AuditLogRecordDataAdapterTest {
     Resource resource = Resource.builder().put("service.name", "auth-svc").build();
     AuditRecordData data =
         SdkAuditRecordData.create(
-            resource, "test", null, null,
-            "id5", TIMESTAMP_NANOS, OBSERVED_NANOS,
-            "user.login.success", "u1", ActorType.USER,
-            "LOGIN", Outcome.SUCCESS,
-            null, null, null, null, null, Attributes.empty(), null, 0, null, null);
+            resource,
+            "test",
+            null,
+            null,
+            "id5",
+            TIMESTAMP_NANOS,
+            OBSERVED_NANOS,
+            "user.login.success",
+            "u1",
+            ActorType.USER,
+            "LOGIN",
+            Outcome.SUCCESS,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Attributes.empty(),
+            null,
+            0,
+            null,
+            null);
     LogRecordData adapted = new AuditLogRecordDataAdapter(data);
     assertThat(adapted.getResource()).isEqualTo(resource);
   }
@@ -151,11 +232,28 @@ class AuditLogRecordDataAdapterTest {
     Attributes userAttrs = Attributes.of(AttributeKey.stringKey("custom.key"), "custom-value");
     AuditRecordData data =
         SdkAuditRecordData.create(
-            Resource.getDefault(), "test", null, null,
-            "id6", TIMESTAMP_NANOS, OBSERVED_NANOS,
-            "custom.event", "u1", ActorType.USER,
-            "READ", Outcome.SUCCESS,
-            null, null, null, null, null, userAttrs, null, 0, null, null);
+            Resource.getDefault(),
+            "test",
+            null,
+            null,
+            "id6",
+            TIMESTAMP_NANOS,
+            OBSERVED_NANOS,
+            "custom.event",
+            "u1",
+            ActorType.USER,
+            "READ",
+            Outcome.SUCCESS,
+            null,
+            null,
+            null,
+            null,
+            null,
+            userAttrs,
+            null,
+            0,
+            null,
+            null);
     LogRecordData adapted = new AuditLogRecordDataAdapter(data);
     assertThat(adapted.getAttributes().get(AttributeKey.stringKey("custom.key")))
         .isEqualTo("custom-value");
@@ -164,13 +262,26 @@ class AuditLogRecordDataAdapterTest {
   private static AuditRecordData buildMinimal() {
     return SdkAuditRecordData.create(
         Resource.getDefault(),
-        "test-logger", null, null,
+        "test-logger",
+        null,
+        null,
         "test-record-id",
-        TIMESTAMP_NANOS, OBSERVED_NANOS,
+        TIMESTAMP_NANOS,
+        OBSERVED_NANOS,
         "user.login.success",
-        "u8472", ActorType.USER,
-        "LOGIN", Outcome.SUCCESS,
-        null, null, null, null, null,
-        Attributes.empty(), null, 0, null, null);
+        "u8472",
+        ActorType.USER,
+        "LOGIN",
+        Outcome.SUCCESS,
+        null,
+        null,
+        null,
+        null,
+        null,
+        Attributes.empty(),
+        null,
+        0,
+        null,
+        null);
   }
 }

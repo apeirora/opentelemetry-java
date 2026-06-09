@@ -124,8 +124,7 @@ class SimpleAuditRecordProcessorTest {
             exportCallCount.incrementAndGet();
             return AuditExportResult.success(
                 Collections.singletonList(
-                    AuditReceipt.create(
-                        records.iterator().next().getRecordId(), "", 0)));
+                    AuditReceipt.create(records.iterator().next().getRecordId(), "", 0)));
           }
 
           @Override

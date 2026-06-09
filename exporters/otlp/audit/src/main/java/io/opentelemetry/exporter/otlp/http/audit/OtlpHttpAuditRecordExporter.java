@@ -7,9 +7,9 @@ package io.opentelemetry.exporter.otlp.http.audit;
 
 import io.opentelemetry.api.audit.AuditDeliveryException;
 import io.opentelemetry.api.audit.AuditReceipt;
+import io.opentelemetry.exporter.internal.otlp.logs.LogsRequestMarshaler;
 import io.opentelemetry.exporter.otlp.internal.HttpExporter;
 import io.opentelemetry.exporter.otlp.internal.HttpExporterBuilder;
-import io.opentelemetry.exporter.internal.otlp.logs.LogsRequestMarshaler;
 import io.opentelemetry.sdk.audit.AuditExportResult;
 import io.opentelemetry.sdk.audit.AuditRecordData;
 import io.opentelemetry.sdk.audit.AuditRecordExporter;
