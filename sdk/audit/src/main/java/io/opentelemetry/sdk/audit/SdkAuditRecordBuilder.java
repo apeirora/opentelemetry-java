@@ -6,6 +6,7 @@
 package io.opentelemetry.sdk.audit;
 
 import io.opentelemetry.api.audit.ActorType;
+import io.opentelemetry.api.audit.Audit;
 import io.opentelemetry.api.audit.AuditDeliveryException;
 import io.opentelemetry.api.audit.AuditReceipt;
 import io.opentelemetry.api.audit.AuditRecordBuilder;
@@ -27,26 +28,15 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   private final SdkAuditProvider.AuditLoggerKey loggerKey;
 
   // Required fields
-  @Nullable private String recordId;
   private long timestampEpochNanos;
   @Nullable private String eventName;
-  @Nullable private String actorId;
-  @Nullable private ActorType actorType;
-  @Nullable private String action;
-  @Nullable private Outcome outcome;
 
   // Optional fields
   private long observedTimestampEpochNanos;
   @Nullable private String schemaVersion;
-  @Nullable private String targetId;
-  @Nullable private String targetType;
-  @Nullable private String sourceId;
-  @Nullable private String sourceType;
   @Nullable private Value<?> body;
-  @Nullable private AttributesMap attributes;
   @Nullable private byte[] integrityValue;
-  private long sequenceNo;
-  @Nullable private String prevHash;
+  private AttributesMap attributes = AttributesMap.create(128, Integer.MAX_VALUE);
 
   SdkAuditRecordBuilder(SdkAuditProvider provider, SdkAuditProvider.AuditLoggerKey loggerKey) {
     this.provider = provider;
@@ -55,7 +45,7 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
 
   @Override
   public SdkAuditRecordBuilder setRecordId(String recordId) {
-    this.recordId = recordId;
+    attributes.put(AttributeKey.stringKey(Audit.RECORD_ID), recordId);
     return this;
   }
 
@@ -79,26 +69,21 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   }
 
   @Override
-  public SdkAuditRecordBuilder setActorId(String actorId) {
-    this.actorId = actorId;
-    return this;
-  }
-
-  @Override
-  public SdkAuditRecordBuilder setActorType(ActorType actorType) {
-    this.actorType = actorType;
+  public SdkAuditRecordBuilder setActor(String actorId, ActorType actorType) {
+    attributes.put(AttributeKey.stringKey(Audit.ACTOR_TYPE), actorType.name());
+    attributes.put(AttributeKey.stringKey(Audit.ACTOR_ID), actorId);
     return this;
   }
 
   @Override
   public SdkAuditRecordBuilder setAction(String action) {
-    this.action = action;
+    attributes.put(AttributeKey.stringKey(Audit.ACTION), action);
     return this;
   }
 
   @Override
   public SdkAuditRecordBuilder setOutcome(Outcome outcome) {
-    this.outcome = outcome;
+    attributes.put(AttributeKey.stringKey(Audit.OUTCOME), outcome.name());
     return this;
   }
 
@@ -122,26 +107,16 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   }
 
   @Override
-  public SdkAuditRecordBuilder setTargetId(String targetId) {
-    this.targetId = targetId;
+  public SdkAuditRecordBuilder setTarget(String targetId, String targetType) {
+    attributes.put(AttributeKey.stringKey(Audit.TARGET_TYPE), targetType);
+    attributes.put(AttributeKey.stringKey(Audit.TARGET_ID), targetId);
     return this;
   }
 
   @Override
-  public SdkAuditRecordBuilder setTargetType(String targetType) {
-    this.targetType = targetType;
-    return this;
-  }
-
-  @Override
-  public SdkAuditRecordBuilder setSourceId(String sourceId) {
-    this.sourceId = sourceId;
-    return this;
-  }
-
-  @Override
-  public SdkAuditRecordBuilder setSourceType(String sourceType) {
-    this.sourceType = sourceType;
+  public SdkAuditRecordBuilder setSource(String sourceId, String sourceType) {
+    attributes.put(AttributeKey.stringKey(Audit.SOURCE_TYPE), sourceType);
+    attributes.put(AttributeKey.stringKey(Audit.SOURCE_ID), sourceId);
     return this;
   }
 
@@ -152,12 +127,13 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   }
 
   @Override
-  public <T> SdkAuditRecordBuilder setAttribute(AttributeKey<T> key, @Nullable T value) {
+  public <T> SdkAuditRecordBuilder addAttribute(AttributeKey<T> key, @Nullable T value) {
     if (key == null || value == null) {
       return this;
     }
-    if (attributes == null) {
-      attributes = AttributesMap.create(128, Integer.MAX_VALUE);
+    if (attributes.containsKey(key)) {
+      throw new IllegalStateException(
+          "Cannot add attribute with key '" + key.getKey() + "'; already exists on this record builder");
     }
     attributes.put(key, value);
     return this;
@@ -171,13 +147,13 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
 
   @Override
   public SdkAuditRecordBuilder setSequenceNo(long sequenceNo) {
-    this.sequenceNo = sequenceNo;
+    attributes.put(AttributeKey.longKey(Audit.SEQUENCE_NUMBER), sequenceNo);
     return this;
   }
 
   @Override
   public SdkAuditRecordBuilder setPrevHash(String prevHash) {
-    this.prevHash = prevHash;
+    attributes.put(AttributeKey.stringKey(Audit.PREV_HASH), prevHash);
     return this;
   }
 
@@ -189,8 +165,10 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
     }
 
     // Step 1: Generate RecordId if absent
+    String recordId = getRecordId();
     if (recordId == null || recordId.isEmpty()) {
-      recordId = UUID.randomUUID().toString();
+      setRecordId(UUID.randomUUID().toString());
+      recordId = getRecordId();
     }
 
     // Step 2: Set ObservedTimestamp if absent
@@ -199,6 +177,10 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
     }
 
     // Step 3: Validate required fields
+    String actorId = getActorId();
+    ActorType actorType = getActorType();
+    String action = getAction();
+    Outcome outcome = getOutcome();
     validateRequired("Timestamp", timestampEpochNanos != 0, "Timestamp must be set");
     validateRequired(
         "EventName",
@@ -212,10 +194,18 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
     validateRequired("Outcome", outcome != null, "Outcome must be set");
 
     String validatedEventName = Objects.requireNonNull(eventName);
+    String validatedRecordId = Objects.requireNonNull(recordId);
     String validatedActorId = Objects.requireNonNull(actorId);
     ActorType validatedActorType = Objects.requireNonNull(actorType);
     String validatedAction = Objects.requireNonNull(action);
     Outcome validatedOutcome = Objects.requireNonNull(outcome);
+
+    String targetId = getTargetId();
+    String targetType = getTargetType();
+    String sourceId = getSourceId();
+    String sourceType = getSourceType();
+    long sequenceNo = getSequenceNo();
+    String prevHash = getPrevHash();
 
     // Step 4+5: Create the mutable record and pass it through all processors.
     // Transfer ownership of the attributes map to the record (builder must not be reused).
@@ -227,7 +217,7 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
             loggerKey.getName(),
             loggerKey.getVersion(),
             loggerKey.getSchemaUrl(),
-            recordId,
+            validatedRecordId,
             timestampEpochNanos,
             observedTimestampEpochNanos,
             validatedEventName,
@@ -262,5 +252,76 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
       throw new IllegalArgumentException(
           "AuditRecord validation failed for field '" + field + "': " + message);
     }
+  }
+
+  @Nullable
+  private String getRecordId() {
+    return attributes.get(AttributeKey.stringKey(Audit.RECORD_ID));
+  }
+
+  @Nullable
+  private String getActorId() {
+    return attributes.get(AttributeKey.stringKey(Audit.ACTOR_ID));
+  }
+
+  @Nullable
+  private ActorType getActorType() {
+    String actorType = attributes.get(AttributeKey.stringKey(Audit.ACTOR_TYPE));
+    if (actorType == null) {
+      return null;
+    }
+    try {
+      return ActorType.valueOf(actorType);
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+  }
+
+  @Nullable
+  private String getAction() {
+    return attributes.get(AttributeKey.stringKey(Audit.ACTION));
+  }
+
+  @Nullable
+  private Outcome getOutcome() {
+    String outcome = attributes.get(AttributeKey.stringKey(Audit.OUTCOME));
+    if (outcome == null) {
+      return null;
+    }
+    try {
+      return Outcome.valueOf(outcome);
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+  }
+
+  @Nullable
+  private String getTargetId() {
+    return attributes.get(AttributeKey.stringKey(Audit.TARGET_ID));
+  }
+
+  @Nullable
+  private String getTargetType() {
+    return attributes.get(AttributeKey.stringKey(Audit.TARGET_TYPE));
+  }
+
+  @Nullable
+  private String getSourceId() {
+    return attributes.get(AttributeKey.stringKey(Audit.SOURCE_ID));
+  }
+
+  @Nullable
+  private String getSourceType() {
+    return attributes.get(AttributeKey.stringKey(Audit.SOURCE_TYPE));
+  }
+
+  private long getSequenceNo() {
+    Long sequenceNo = attributes.get(AttributeKey.longKey(Audit.SEQUENCE_NUMBER));
+    return sequenceNo == null ? -1 : sequenceNo;
+  }
+
+  @Nullable
+  private String getPrevHash() {
+    return attributes.get(AttributeKey.stringKey(Audit.PREV_HASH));
   }
 }

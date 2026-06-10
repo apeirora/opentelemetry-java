@@ -55,10 +55,7 @@ public interface AuditRecordBuilder {
    *
    * <p>If the actor cannot be determined, set to a sentinel such as {@code "anonymous"}.
    */
-  AuditRecordBuilder setActorId(String actorId);
-
-  /** Sets the type of the actor ({@code audit.actor.type}). */
-  AuditRecordBuilder setActorType(ActorType actorType);
+  AuditRecordBuilder setActor(String actorId, ActorType actorType);
 
   /**
    * Sets the verb that describes what the actor did ({@code audit.action}), e.g. {@code "LOGIN"},
@@ -90,25 +87,13 @@ public interface AuditRecordBuilder {
    * Sets the identifier of the resource acted upon ({@code audit.target.id}), e.g. a file path,
    * REST endpoint, or database table name.
    */
-  AuditRecordBuilder setTargetId(String targetId);
-
-  /**
-   * Sets the type of the target resource ({@code audit.target.type}), e.g. {@code "file"}, {@code
-   * "http.endpoint"}, {@code "k8s.configmap"}.
-   */
-  AuditRecordBuilder setTargetType(String targetType);
+  AuditRecordBuilder setTarget(String targetId, String targetType);
 
   /**
    * Sets the network address or identifier of the source ({@code audit.source.id}), e.g. {@code
    * "203.0.113.42"}.
    */
-  AuditRecordBuilder setSourceId(String sourceId);
-
-  /**
-   * Sets the type of the source address ({@code audit.source.type}), e.g. {@code "ipv4"}, {@code
-   * "ipv6"}, {@code "hostname"}.
-   */
-  AuditRecordBuilder setSourceType(String sourceType);
+  AuditRecordBuilder setSource(String sourceId, String sourceType);
 
   /** Sets free-form additional information about the audit event. */
   AuditRecordBuilder setBody(Value<?> body);
@@ -124,7 +109,7 @@ public interface AuditRecordBuilder {
    *
    * <p>Providing a {@code null} value is a no-op and does not remove previously set values.
    */
-  <T> AuditRecordBuilder setAttribute(AttributeKey<T> key, @Nullable T value);
+  <T> AuditRecordBuilder addAttribute(AttributeKey<T> key, @Nullable T value);
 
   /**
    * Sets the raw bytes of the cryptographic integrity proof ({@code audit.integrity.value}). The
