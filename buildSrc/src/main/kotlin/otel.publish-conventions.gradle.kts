@@ -85,7 +85,9 @@ publishing {
   }
 }
 
-if (System.getenv("CI") != null) {
+// Sign only when GPG credentials are explicitly provided.
+// GitHub Actions sets CI=true unconditionally, so gating on CI would break snapshot-only workflows.
+if (System.getenv("GPG_PRIVATE_KEY") != null) {
   signing {
     useInMemoryPgpKeys(System.getenv("GPG_PRIVATE_KEY"), System.getenv("GPG_PASSWORD"))
     sign(publishing.publications["mavenPublication"])
