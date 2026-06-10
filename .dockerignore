@@ -1,0 +1,24 @@
+# Gradle-Build
+**/build/
+**/.gradle/
+.gradle/
+
+# cached Gradle-Wrapper
+gradle/wrapper/gradle-wrapper.jar.sha256
+
+# IDE-Files
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# DO NOT ignore:
+# .git/          → required by jApiCmp for Versions-Checks
+# docs/apidiffs/ → required by jApiCmp-Diff-Check
+# gradlew        → required by Build
