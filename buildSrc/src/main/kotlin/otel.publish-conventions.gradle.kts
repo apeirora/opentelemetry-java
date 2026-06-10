@@ -67,10 +67,11 @@ publishing {
     }
   }
 
-  // Publish to GitHub Packages when GITHUB_TOKEN is available (e.g. in CI snapshot workflow).
-  // Local builds and the Sonatype release workflow are unaffected because they do not set GITHUB_TOKEN.
+  // Publish to GitHub Packages only for SNAPSHOT builds.
+  // Activated when GITHUB_TOKEN is set and the version ends with -SNAPSHOT.
+  // Local builds and the Sonatype release workflow are unaffected.
   val githubToken = System.getenv("GITHUB_TOKEN")
-  if (githubToken != null) {
+  if (githubToken != null && project.version.toString().endsWith("-SNAPSHOT")) {
     repositories {
       maven {
         name = "githubPackages"
