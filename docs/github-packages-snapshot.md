@@ -82,15 +82,45 @@ dependencies {
 ## Using in CI (GitHub Actions)
 
 When your consumer project itself runs on GitHub Actions, `GITHUB_TOKEN` is
-automatically available — no PAT needed:
+automatically available — no PAT needed.
+
+### Gradle
+
+The repository block above already reads `GITHUB_TOKEN` and `GITHUB_ACTOR` from
+the environment, so no extra configuration is required:
 
 ```yaml
 - name: Build
-  run: mvn verify   # or ./gradlew build
+  run: ./gradlew build
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     GITHUB_ACTOR: ${{ github.actor }}
 ```
 
-For Gradle, the repository block above already reads `GITHUB_TOKEN` from the
-environment, so no further configuration is required.
+### Maven
+
+Maven does not substitute environment variables in `settings.xml` unless you use
+`${env.VAR}` syntax. Create a CI-specific settings file (e.g.,
+`.github/maven-settings.xml`) in your consumer project:
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github-apeirora</id>
+      <username>${env.GITHUB_ACTOR}</username>
+      <password>${env.GITHUB_TOKEN}</password>
+    </server>
+  </servers>
+</settings>
+```
+
+Then reference it in your workflow step:
+
+```yaml
+- name: Build
+  run: mvn verify --settings .github/maven-settings.xml
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GITHUB_ACTOR: ${{ github.actor }}
+```
