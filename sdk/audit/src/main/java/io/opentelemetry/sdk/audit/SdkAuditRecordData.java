@@ -9,7 +9,6 @@ import com.google.auto.value.AutoValue;
 import io.opentelemetry.api.audit.ActorType;
 import io.opentelemetry.api.audit.Outcome;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.Value;
 import io.opentelemetry.sdk.resources.Resource;
 import javax.annotation.Nullable;
 
@@ -24,13 +23,14 @@ public abstract class SdkAuditRecordData implements AuditRecordData {
   @SuppressWarnings("TooManyParameters")
   public static SdkAuditRecordData create(
       Resource resource,
+      long timestampEpochNanos,
+      long observedTimestampEpochNanos,
+      Attributes attributes,
+      String eventName,
       String loggerName,
       @Nullable String loggerVersion,
       @Nullable String schemaUrl,
       String recordId,
-      long timestampEpochNanos,
-      long observedTimestampEpochNanos,
-      String eventName,
       String actorId,
       ActorType actorType,
       String action,
@@ -39,21 +39,20 @@ public abstract class SdkAuditRecordData implements AuditRecordData {
       @Nullable String targetType,
       @Nullable String sourceId,
       @Nullable String sourceType,
-      @Nullable Value<?> body,
-      Attributes attributes,
       @Nullable byte[] integrityValue,
       long sequenceNo,
       @Nullable String prevHash,
       @Nullable String schemaVersion) {
     return new AutoValue_SdkAuditRecordData(
         resource,
+        timestampEpochNanos,
+        observedTimestampEpochNanos,
+        attributes,
+        eventName,
         loggerName,
         loggerVersion,
         schemaUrl,
         recordId,
-        timestampEpochNanos,
-        observedTimestampEpochNanos,
-        eventName,
         actorId,
         actorType,
         action,
@@ -62,8 +61,6 @@ public abstract class SdkAuditRecordData implements AuditRecordData {
         targetType,
         sourceId,
         sourceType,
-        body,
-        attributes,
         integrityValue,
         sequenceNo,
         prevHash,

@@ -58,8 +58,7 @@ class BatchAuditRecordProcessorTest {
                     .auditRecordBuilder()
                     .setTimestamp(Instant.now())
                     .setEventName("batch.event")
-                    .setActorId("u" + idx)
-                    .setActorType(ActorType.USER)
+                    .setActor("u" + idx, ActorType.USER)
                     .setAction("READ")
                     .setOutcome(Outcome.SUCCESS)
                     .emit();
@@ -81,8 +80,7 @@ class BatchAuditRecordProcessorTest {
           .auditRecordBuilder()
           .setTimestamp(Instant.now())
           .setEventName("flush.event")
-          .setActorId("u" + i)
-          .setActorType(ActorType.USER)
+          .setActor("u" + i, ActorType.USER)
           .setAction("READ")
           .setOutcome(Outcome.SUCCESS)
           .emit();
@@ -100,8 +98,7 @@ class BatchAuditRecordProcessorTest {
               .auditRecordBuilder()
               .setTimestamp(Instant.now())
               .setEventName("receipt.event")
-              .setActorId("u" + i)
-              .setActorType(ActorType.USER)
+              .setActor("u" + i, ActorType.USER)
               .setAction("READ")
               .setOutcome(Outcome.SUCCESS)
               .emit();
@@ -119,8 +116,7 @@ class BatchAuditRecordProcessorTest {
           .auditRecordBuilder()
           .setTimestamp(Instant.now())
           .setEventName("unique.event")
-          .setActorId("u" + i)
-          .setActorType(ActorType.USER)
+          .setActor("u" + i, ActorType.USER)
           .setAction("READ")
           .setOutcome(Outcome.SUCCESS)
           .emit();
@@ -138,8 +134,7 @@ class BatchAuditRecordProcessorTest {
           .auditRecordBuilder()
           .setTimestamp(Instant.now())
           .setEventName("shutdown.event")
-          .setActorId("u" + i)
-          .setActorType(ActorType.USER)
+          .setActor("u" + i, ActorType.USER)
           .setAction("READ")
           .setOutcome(Outcome.SUCCESS)
           .emit();

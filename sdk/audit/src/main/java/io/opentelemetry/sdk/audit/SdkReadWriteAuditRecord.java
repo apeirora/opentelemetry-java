@@ -10,7 +10,6 @@ import io.opentelemetry.api.audit.AuditReceipt;
 import io.opentelemetry.api.audit.Outcome;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.internal.GuardedBy;
 import io.opentelemetry.sdk.common.internal.AttributesMap;
 import io.opentelemetry.sdk.resources.Resource;
@@ -40,7 +39,6 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
   @Nullable private final String targetType;
   @Nullable private final String sourceId;
   @Nullable private final String sourceType;
-  @Nullable private final Value<?> body;
   @Nullable private final byte[] integrityValue;
   private final long sequenceNo;
   @Nullable private final String prevHash;
@@ -74,7 +72,6 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
       @Nullable String targetType,
       @Nullable String sourceId,
       @Nullable String sourceType,
-      @Nullable Value<?> body,
       @Nullable AttributesMap attributes,
       @Nullable byte[] integrityValue,
       long sequenceNo,
@@ -96,7 +93,6 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
     this.targetType = targetType;
     this.sourceId = sourceId;
     this.sourceType = sourceType;
-    this.body = body;
     this.attributes = attributes;
     this.integrityValue = integrityValue;
     this.sequenceNo = sequenceNo;
@@ -141,13 +137,14 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
     }
     return SdkAuditRecordData.create(
         resource,
+        timestampEpochNanos,
+        observedTimestampEpochNanos,
+        frozenAttributes,
+        eventName,
         loggerName,
         loggerVersion,
         schemaUrl,
         recordId,
-        timestampEpochNanos,
-        observedTimestampEpochNanos,
-        eventName,
         actorId,
         actorType,
         action,
@@ -156,8 +153,6 @@ final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
         targetType,
         sourceId,
         sourceType,
-        body,
-        frozenAttributes,
         integrityValue,
         sequenceNo,
         prevHash,

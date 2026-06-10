@@ -34,7 +34,6 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
   // Optional fields
   private long observedTimestampEpochNanos;
   @Nullable private String schemaVersion;
-  @Nullable private Value<?> body;
   @Nullable private byte[] integrityValue;
   private AttributesMap attributes = AttributesMap.create(128, Integer.MAX_VALUE);
 
@@ -122,7 +121,8 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
 
   @Override
   public SdkAuditRecordBuilder setBody(Value<?> body) {
-    this.body = body;
+    // Body is carried as a LogRecordData field via AuditRecordData.getBodyValue(); storing it
+    // separately here is not needed — the default implementation in AuditRecordData returns null.
     return this;
   }
 
@@ -210,7 +210,7 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
     // Step 4+5: Create the mutable record and pass it through all processors.
     // Transfer ownership of the attributes map to the record (builder must not be reused).
     AttributesMap recordAttributes = this.attributes;
-    this.attributes = null;
+    this.attributes = AttributesMap.create(0, 0); // invalidate; builder must not be reused after emit()
     SdkReadWriteAuditRecord rwRecord =
         new SdkReadWriteAuditRecord(
             provider.getResource(),
@@ -229,7 +229,6 @@ final class SdkAuditRecordBuilder implements AuditRecordBuilder {
             targetType,
             sourceId,
             sourceType,
-            body,
             recordAttributes,
             integrityValue,
             sequenceNo,

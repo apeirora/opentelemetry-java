@@ -7,10 +7,11 @@ package io.opentelemetry.sdk.audit;
 
 import io.opentelemetry.api.audit.ActorType;
 import io.opentelemetry.api.audit.Outcome;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.Value;
+import io.opentelemetry.api.logs.Severity;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
+import io.opentelemetry.sdk.logs.data.Body;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
-import io.opentelemetry.sdk.resources.Resource;
 import javax.annotation.Nullable;
 
 /**
@@ -20,6 +21,45 @@ import javax.annotation.Nullable;
  * io.opentelemetry.api.audit.AuditRecordBuilder#emit()} is called.
  */
 public interface AuditRecordData extends LogRecordData {
+
+  // Audit records do not use LogRecordData's instrumentation scope, span context, severity, or body
+  // fields. These defaults prevent AutoValue from generating constructor parameters for them.
+
+  @Override
+  default InstrumentationScopeInfo getInstrumentationScopeInfo() {
+    return InstrumentationScopeInfo.empty();
+  }
+
+  @Override
+  default SpanContext getSpanContext() {
+    return SpanContext.getInvalid();
+  }
+
+  @Override
+  default Severity getSeverity() {
+    return Severity.UNDEFINED_SEVERITY_NUMBER;
+  }
+
+  @Override
+  @Nullable
+  default String getSeverityText() {
+    return null;
+  }
+
+  @Override
+  @Deprecated
+  default Body getBody() {
+    return Body.empty();
+  }
+
+  @Override
+  default int getTotalAttributeCount() {
+    return getAttributes().size();
+  }
+
+  /** Returns the semantic event name for this audit record. Never null or empty. */
+  @Override
+  String getEventName();
 
   /**
    * Returns the diagnostic name of the {@link io.opentelemetry.api.audit.AuditLogger} that emitted

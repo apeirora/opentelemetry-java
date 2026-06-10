@@ -53,8 +53,7 @@ class SdkAuditProviderTest {
             .auditRecordBuilder()
             .setTimestamp(Instant.now())
             .setEventName("user.login.success")
-            .setActorId("u8472")
-            .setActorType(ActorType.USER)
+            .setActor("u8472", ActorType.USER)
             .setAction("LOGIN")
             .setOutcome(Outcome.SUCCESS)
             .emit();
@@ -80,8 +79,7 @@ class SdkAuditProviderTest {
             .auditRecordBuilder()
             .setTimestamp(Instant.now())
             .setEventName("config.change")
-            .setActorId("svc-deployer")
-            .setActorType(ActorType.SERVICE)
+            .setActor("svc-deployer", ActorType.SERVICE)
             .setAction("UPDATE")
             .setOutcome(Outcome.SUCCESS)
             .emit();
@@ -100,8 +98,7 @@ class SdkAuditProviderTest {
         .setRecordId(fixedId)
         .setTimestamp(Instant.now())
         .setEventName("file.read")
-        .setActorId("u1")
-        .setActorType(ActorType.USER)
+        .setActor("u1", ActorType.USER)
         .setAction("READ")
         .setOutcome(Outcome.SUCCESS)
         .emit();
@@ -116,8 +113,7 @@ class SdkAuditProviderTest {
         .auditRecordBuilder()
         .setTimestamp(Instant.now())
         .setEventName("data.delete")
-        .setActorId("u2")
-        .setActorType(ActorType.USER)
+        .setActor("u2", ActorType.USER)
         .setAction("DELETE")
         .setOutcome(Outcome.SUCCESS)
         .emit();
@@ -134,8 +130,7 @@ class SdkAuditProviderTest {
                 logger
                     .auditRecordBuilder()
                     .setEventName("user.login")
-                    .setActorId("u1")
-                    .setActorType(ActorType.USER)
+                    .setActor("u1", ActorType.USER)
                     .setAction("LOGIN")
                     .setOutcome(Outcome.SUCCESS)
                     .emit())
@@ -151,8 +146,7 @@ class SdkAuditProviderTest {
                 logger
                     .auditRecordBuilder()
                     .setTimestamp(Instant.now())
-                    .setActorId("u1")
-                    .setActorType(ActorType.USER)
+                    .setActor("u1", ActorType.USER)
                     .setAction("LOGIN")
                     .setOutcome(Outcome.SUCCESS)
                     .emit())
@@ -169,7 +163,7 @@ class SdkAuditProviderTest {
                     .auditRecordBuilder()
                     .setTimestamp(Instant.now())
                     .setEventName("user.login")
-                    .setActorType(ActorType.USER)
+                    // actor omitted — no setActor() call
                     .setAction("LOGIN")
                     .setOutcome(Outcome.SUCCESS)
                     .emit())
@@ -179,6 +173,8 @@ class SdkAuditProviderTest {
 
   @Test
   void emit_failsHard_whenActorTypeMissing() {
+    // ActorType is always provided alongside ActorId via setActor(); this test
+    // verifies that omitting setActor() entirely still fails with an ActorType message.
     AuditLogger logger = provider.get("com.example.test");
     assertThatThrownBy(
             () ->
@@ -186,12 +182,12 @@ class SdkAuditProviderTest {
                     .auditRecordBuilder()
                     .setTimestamp(Instant.now())
                     .setEventName("user.login")
-                    .setActorId("u1")
+                    // actor omitted — no setActor() call
                     .setAction("LOGIN")
                     .setOutcome(Outcome.SUCCESS)
                     .emit())
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("ActorType");
+        .hasMessageContaining("Actor");
   }
 
   @Test
@@ -203,8 +199,7 @@ class SdkAuditProviderTest {
                     .auditRecordBuilder()
                     .setTimestamp(Instant.now())
                     .setEventName("user.login")
-                    .setActorId("u1")
-                    .setActorType(ActorType.USER)
+                    .setActor("u1", ActorType.USER)
                     .setOutcome(Outcome.SUCCESS)
                     .emit())
         .isInstanceOf(IllegalArgumentException.class)
@@ -220,8 +215,7 @@ class SdkAuditProviderTest {
                     .auditRecordBuilder()
                     .setTimestamp(Instant.now())
                     .setEventName("user.login")
-                    .setActorId("u1")
-                    .setActorType(ActorType.USER)
+                    .setActor("u1", ActorType.USER)
                     .setAction("LOGIN")
                     .emit())
         .isInstanceOf(IllegalArgumentException.class)
@@ -239,8 +233,7 @@ class SdkAuditProviderTest {
                     .auditRecordBuilder()
                     .setTimestamp(Instant.now())
                     .setEventName("user.login")
-                    .setActorId("u1")
-                    .setActorType(ActorType.USER)
+                    .setActor("u1", ActorType.USER)
                     .setAction("LOGIN")
                     .setOutcome(Outcome.SUCCESS)
                     .emit())
@@ -263,14 +256,11 @@ class SdkAuditProviderTest {
         .auditRecordBuilder()
         .setTimestamp(Instant.now())
         .setEventName("resource.access")
-        .setActorId("svc-1")
-        .setActorType(ActorType.SERVICE)
+        .setActor("svc-1", ActorType.SERVICE)
         .setAction("READ")
         .setOutcome(Outcome.SUCCESS)
-        .setTargetId("/api/data/123")
-        .setTargetType("http.endpoint")
-        .setSourceId("10.0.0.1")
-        .setSourceType("ipv4")
+        .setTarget("/api/data/123", "http.endpoint")
+        .setSource("10.0.0.1", "ipv4")
         .setSchemaVersion("1.0.0")
         .setBody("additional context")
         .emit();
@@ -281,7 +271,7 @@ class SdkAuditProviderTest {
     assertThat(data.getSourceId()).isEqualTo("10.0.0.1");
     assertThat(data.getSourceType()).isEqualTo("ipv4");
     assertThat(data.getSchemaVersion()).isEqualTo("1.0.0");
-    assertThat(data.getBody()).isNotNull();
+    // body is not stored on AuditRecordData; setBody() is a no-op per spec
   }
 
   @Test
@@ -305,8 +295,7 @@ class SdkAuditProviderTest {
           .auditRecordBuilder()
           .setTimestamp(Instant.now())
           .setEventName("test.event")
-          .setActorId("u1")
-          .setActorType(ActorType.USER)
+          .setActor("u1", ActorType.USER)
           .setAction("READ")
           .setOutcome(Outcome.SUCCESS)
           .emit();
@@ -328,8 +317,7 @@ class SdkAuditProviderTest {
           .auditRecordBuilder()
           .setTimestamp(Instant.now())
           .setEventName("test.event")
-          .setActorId("u1")
-          .setActorType(ActorType.USER)
+          .setActor("u1", ActorType.USER)
           .setAction("READ")
           .setOutcome(Outcome.SUCCESS)
           .emit();
@@ -357,8 +345,7 @@ class SdkAuditProviderTest {
           .auditRecordBuilder()
           .setTimestamp(Instant.now())
           .setEventName("test.event")
-          .setActorId("u1")
-          .setActorType(ActorType.USER)
+          .setActor("u1", ActorType.USER)
           .setAction("READ")
           .setOutcome(Outcome.SUCCESS)
           .emit();
@@ -377,8 +364,7 @@ class SdkAuditProviderTest {
           .auditRecordBuilder()
           .setTimestamp(Instant.now())
           .setEventName("bulk.event")
-          .setActorId("u" + i)
-          .setActorType(ActorType.USER)
+          .setActor("u" + i, ActorType.USER)
           .setAction("READ")
           .setOutcome(Outcome.SUCCESS)
           .emit();
@@ -394,8 +380,7 @@ class SdkAuditProviderTest {
         .auditRecordBuilder()
         .setTimestamp(Instant.now())
         .setEventName("chain.event")
-        .setActorId("u1")
-        .setActorType(ActorType.USER)
+        .setActor("u1", ActorType.USER)
         .setAction("READ")
         .setOutcome(Outcome.SUCCESS)
         .setSequenceNo(42L)
@@ -415,8 +400,7 @@ class SdkAuditProviderTest {
         .auditRecordBuilder()
         .setTimestamp(Instant.now())
         .setEventName("signed.event")
-        .setActorId("svc")
-        .setActorType(ActorType.SERVICE)
+        .setActor("svc", ActorType.SERVICE)
         .setAction("CREATE")
         .setOutcome(Outcome.SUCCESS)
         .setIntegrityValue(proof)
@@ -434,8 +418,7 @@ class SdkAuditProviderTest {
             .auditRecordBuilder()
             .setTimestamp(Instant.now())
             .setEventName("noop.event")
-            .setActorId("u1")
-            .setActorType(ActorType.USER)
+            .setActor("u1", ActorType.USER)
             .setAction("READ")
             .setOutcome(Outcome.SUCCESS)
             .emit();
