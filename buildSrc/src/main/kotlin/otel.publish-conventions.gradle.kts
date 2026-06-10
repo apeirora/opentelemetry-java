@@ -8,7 +8,7 @@ plugins {
 publishing {
   publications {
     register<MavenPublication>("mavenPublication") {
-      groupId = "io.opentelemetry"
+      groupId = "eu.apeirora.opentelemetry"
       afterEvaluate {
         // not available until evaluated.
         artifactId = base.archivesName.get()
