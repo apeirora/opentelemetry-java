@@ -27,7 +27,7 @@ jobs:
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Publish SNAPSHOT artifacts
-        run: ./gradlew assemble publish
+        run: ./gradlew assemble publishAllPublicationsToGithubPackagesRepository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
