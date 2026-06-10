@@ -66,6 +66,22 @@ publishing {
       }
     }
   }
+
+  // Publish to GitHub Packages when GITHUB_TOKEN is available (e.g. in CI snapshot workflow).
+  // Local builds and the Sonatype release workflow are unaffected because they do not set GITHUB_TOKEN.
+  val githubToken = System.getenv("GITHUB_TOKEN")
+  if (githubToken != null) {
+    repositories {
+      maven {
+        name = "githubPackages"
+        url = uri("https://maven.pkg.github.com/apeirora/opentelemetry-java")
+        credentials {
+          username = System.getenv("GITHUB_ACTOR") ?: "apeirora-bot"
+          password = githubToken
+        }
+      }
+    }
+  }
 }
 
 if (System.getenv("CI") != null) {
