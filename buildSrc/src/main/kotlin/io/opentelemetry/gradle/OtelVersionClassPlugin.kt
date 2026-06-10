@@ -26,8 +26,11 @@ class OtelVersionClassPlugin : Plugin<Project> {
 
     val outDir = project.layout.buildDirectory.dir("generated/sources/version/java/main")
 
+    // Remap the Maven group to the Java package root: eu.apeirora.opentelemetry → io.opentelemetry
+    val javaGroup = "${project.group}".replace("eu.apeirora.opentelemetry", "io.opentelemetry")
+
     project.tasks.register("generateOtelVersionClass", GenerateOtelVersionClassTask::class.java) {
-      projectGroup.set("${project.group}")
+      projectGroup.set(javaGroup)
       projectName.set(project.name)
       projectVersion.set("${project.version}")
       outputDirectory.set(outDir)
