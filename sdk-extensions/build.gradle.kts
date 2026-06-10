@@ -1,6 +1,6 @@
 subprojects {
   // Workaround https://github.com/gradle/gradle/issues/847
-  group = "io.opentelemetry.sdk.extensions"
+  group = "eu.apeirora.opentelemetry.sdk.extensions"
   val proj = this
   plugins.withId("java") {
     configure<BasePluginExtension> {

@@ -9,7 +9,7 @@ plugins {
 apply(from = "version.gradle.kts")
 
 nexusPublishing {
-  packageGroup.set("io.opentelemetry")
+  packageGroup.set("eu.apeirora.opentelemetry")
 
   repositories {
     // see https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#configuration
@@ -39,7 +39,7 @@ tasks.register("generateBuildSubstitutions") {
 }
 
 subprojects {
-  group = "io.opentelemetry"
+  group = "eu.apeirora.opentelemetry"
 }
 
 tasks {

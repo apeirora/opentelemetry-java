@@ -3,7 +3,7 @@ plugins {
 }
 
 description = "OpenTelemetry Bill of Materials"
-group = "io.opentelemetry"
+group = "eu.apeirora.opentelemetry"
 base.archivesName.set("opentelemetry-bom")
 
 otelBom.projectFilter.set { !it.hasProperty("otel.release") }
