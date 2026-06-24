@@ -58,11 +58,11 @@ public class SdkAuditProvider implements AuditProvider, Closeable {
       throw new AuditDeliveryException(
           "AuditProvider has been shut down; cannot create new AuditLoggers");
     }
-    if (name == null || name.isEmpty()) {
+    if (name.isEmpty()) {
       logger.log(
           Level.WARNING,
-          "AuditProvider.auditLoggerBuilder() called with null or empty name; using 'unknown'");
-      name = "unknown";
+          "AuditProvider.auditLoggerBuilder() called with empty name; using 'unknown'");
+      return new SdkAuditLoggerBuilder(this, "unknown");
     }
     return new SdkAuditLoggerBuilder(this, name);
   }
