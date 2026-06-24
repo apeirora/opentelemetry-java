@@ -17,9 +17,9 @@ import javax.annotation.Nullable;
 /** Builder for {@link SdkAuditProvider}. */
 public class SdkAuditProviderBuilder {
 
-  private static final AttributeKey<String> ATTR_INTEGRITY_ALGORITHM =
+  public static final AttributeKey<String> ATTR_INTEGRITY_ALGORITHM =
       AttributeKey.stringKey("audit.integrity.algorithm");
-  private static final AttributeKey<String> ATTR_INTEGRITY_CERTIFICATE =
+  public static final AttributeKey<String> ATTR_INTEGRITY_CERTIFICATE =
       AttributeKey.stringKey("audit.integrity.certificate");
 
   private Resource resource = Resource.getDefault();
@@ -32,18 +32,12 @@ public class SdkAuditProviderBuilder {
 
   /** Sets the {@link Resource} to be associated with all audit records emitted by this provider. */
   public SdkAuditProviderBuilder setResource(Resource resource) {
-    if (resource == null) {
-      throw new NullPointerException("resource");
-    }
     this.resource = resource;
     return this;
   }
 
   /** Sets the {@link Clock} used for {@code ObservedTimestamp} generation. */
   public SdkAuditProviderBuilder setClock(Clock clock) {
-    if (clock == null) {
-      throw new NullPointerException("clock");
-    }
     this.clock = clock;
     return this;
   }
@@ -56,9 +50,6 @@ public class SdkAuditProviderBuilder {
    * setting the {@link io.opentelemetry.api.audit.AuditReceipt} on the record.
    */
   public SdkAuditProviderBuilder addAuditRecordProcessor(AuditRecordProcessor processor) {
-    if (processor == null) {
-      throw new NullPointerException("processor");
-    }
     processors.add(processor);
     return this;
   }
@@ -73,9 +64,6 @@ public class SdkAuditProviderBuilder {
    * "HMAC-SHA256"}).
    */
   public SdkAuditProviderBuilder setIntegrityAlgorithm(String algorithm) {
-    if (algorithm == null) {
-      throw new NullPointerException("algorithm");
-    }
     this.integrityAlgorithm = algorithm;
     return this;
   }
@@ -89,16 +77,12 @@ public class SdkAuditProviderBuilder {
    * Issuer+Serial ({@code CN=...,O=.../serial}).
    */
   public SdkAuditProviderBuilder setIntegrityCertificate(String certificate) {
-    if (certificate == null) {
-      throw new NullPointerException("certificate");
-    }
     this.integrityCertificate = certificate;
     return this;
   }
 
   /** Builds and returns the configured {@link SdkAuditProvider}. */
   public SdkAuditProvider build() {
-    Resource effectiveResource = resource;
     if (integrityAlgorithm != null || integrityCertificate != null) {
       AttributesBuilder integrityAttrs = Attributes.builder();
       if (integrityAlgorithm != null) {
@@ -107,8 +91,9 @@ public class SdkAuditProviderBuilder {
       if (integrityCertificate != null) {
         integrityAttrs.put(ATTR_INTEGRITY_CERTIFICATE, integrityCertificate);
       }
-      effectiveResource = resource.merge(Resource.create(integrityAttrs.build()));
+      return new SdkAuditProvider(
+          resource.merge(Resource.create(integrityAttrs.build())), processors, clock);
     }
-    return new SdkAuditProvider(effectiveResource, processors, clock);
+    return new SdkAuditProvider(resource, processors, clock);
   }
 }
