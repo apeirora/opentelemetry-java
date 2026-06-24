@@ -13,9 +13,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>The provider is expected to be accessed from a central place. Use {@link
  * GlobalAuditProvider#get()} to obtain the globally registered instance, or create an {@link
  * AuditProvider} directly via the SDK.
- *
- * <p>When no SDK is installed, {@link #noop()} returns an {@link AuditProvider} whose loggers emit
- * no-op receipts without error.
  */
 @ThreadSafe
 public interface AuditProvider {
@@ -37,12 +34,4 @@ public interface AuditProvider {
    *     empty.
    */
   AuditLoggerBuilder auditLoggerBuilder(String name);
-
-  /**
-   * Returns a no-op {@link AuditProvider} whose loggers return no-op {@link AuditReceipt}s
-   * immediately without error.
-   */
-  static AuditProvider noop() {
-    return DefaultAuditProvider.getInstance();
-  }
 }

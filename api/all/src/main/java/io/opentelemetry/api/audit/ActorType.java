@@ -8,7 +8,7 @@ package io.opentelemetry.api.audit;
 /**
  * Classifies the kind of entity that performed an auditable action.
  *
- * @see AuditRecordBuilder#setActorType(ActorType)
+ * @see AuditRecordBuilder#setActor(String, ActorType)
  */
 public enum ActorType {
 
@@ -19,5 +19,5 @@ public enum ActorType {
   SERVICE,
 
   /** The operating system or a privileged system component. */
-  SYSTEM
+  SYSTEM;
 }
