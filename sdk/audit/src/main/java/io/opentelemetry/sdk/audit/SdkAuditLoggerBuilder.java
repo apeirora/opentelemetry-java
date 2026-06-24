@@ -23,13 +23,13 @@ public class SdkAuditLoggerBuilder implements AuditLoggerBuilder {
   }
 
   @Override
-  public SdkAuditLoggerBuilder setSchemaUrl(String schemaUrl) {
+  public AuditLoggerBuilder setSchemaUrl(String schemaUrl) {
     this.schemaUrl = schemaUrl;
     return this;
   }
 
   @Override
-  public SdkAuditLoggerBuilder setInstrumentationVersion(String instrumentationVersion) {
+  public AuditLoggerBuilder setInstrumentationVersion(String instrumentationVersion) {
     this.version = instrumentationVersion;
     return this;
   }
