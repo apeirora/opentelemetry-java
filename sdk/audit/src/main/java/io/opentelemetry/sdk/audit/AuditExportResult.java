@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
  * the same order as the input collection. On failure, the list is empty and {@link #isSuccess()}
  * returns {@code false}.
  */
-public final class AuditExportResult {
+public class AuditExportResult {
 
   private final boolean success;
   private final List<AuditReceipt> receipts;

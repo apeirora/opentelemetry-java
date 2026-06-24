@@ -11,7 +11,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /** SDK implementation of {@link AuditLogger}. */
 @ThreadSafe
-final class SdkAuditLogger implements AuditLogger {
+public class SdkAuditLogger implements AuditLogger {
 
   private final SdkAuditProvider provider;
   private final SdkAuditProvider.AuditLoggerKey key;

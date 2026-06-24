@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Composite {@link AuditRecordProcessor} that delegates to multiple processors in order. */
-final class MultiAuditRecordProcessor implements AuditRecordProcessor {
+public class MultiAuditRecordProcessor implements AuditRecordProcessor {
 
   private final List<AuditRecordProcessor> processors;
 

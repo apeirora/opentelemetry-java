@@ -15,7 +15,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /** Builder for {@link SdkAuditProvider}. */
-public final class SdkAuditProviderBuilder {
+public class SdkAuditProviderBuilder {
 
   private static final AttributeKey<String> ATTR_INTEGRITY_ALGORITHM =
       AttributeKey.stringKey("audit.integrity.algorithm");

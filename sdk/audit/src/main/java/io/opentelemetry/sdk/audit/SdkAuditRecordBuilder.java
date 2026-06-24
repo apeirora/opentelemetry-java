@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /** SDK implementation of {@link AuditRecordBuilder}. */
-final class SdkAuditRecordBuilder implements AuditRecordBuilder {
+public class SdkAuditRecordBuilder implements AuditRecordBuilder {
 
   private final SdkAuditProvider provider;
   private final SdkAuditProvider.AuditLoggerKey loggerKey;

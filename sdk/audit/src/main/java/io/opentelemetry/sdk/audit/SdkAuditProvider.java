@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  * <p>The provider intentionally does NOT expose sampler configuration. Any attempt to configure
  * sampling on the audit pipeline is a configuration error and will be rejected.
  */
-public final class SdkAuditProvider implements AuditProvider, Closeable {
+public class SdkAuditProvider implements AuditProvider, Closeable {
 
   private static final Logger logger = Logger.getLogger(SdkAuditProvider.class.getName());
 

@@ -21,7 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * enrich the record by adding attributes but MUST NOT modify the mandatory fields.
  */
 @ThreadSafe
-final class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
+public class SdkReadWriteAuditRecord implements ReadWriteAuditRecord {
 
   private final Resource resource;
   private final String loggerName;

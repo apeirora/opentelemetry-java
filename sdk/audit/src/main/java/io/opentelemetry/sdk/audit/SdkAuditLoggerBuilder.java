@@ -10,7 +10,7 @@ import io.opentelemetry.api.audit.AuditLoggerBuilder;
 import javax.annotation.Nullable;
 
 /** SDK implementation of {@link AuditLoggerBuilder}. */
-final class SdkAuditLoggerBuilder implements AuditLoggerBuilder {
+public class SdkAuditLoggerBuilder implements AuditLoggerBuilder {
 
   private final SdkAuditProvider provider;
   private final String name;
