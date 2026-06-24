@@ -8,18 +8,18 @@ package io.opentelemetry.sdk.audit;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /** Composite {@link AuditRecordProcessor} that delegates to multiple processors in order. */
 public class MultiAuditRecordProcessor implements AuditRecordProcessor {
 
-  private final List<AuditRecordProcessor> processors;
+  private final Collection<AuditRecordProcessor> processors;
 
-  private MultiAuditRecordProcessor(List<AuditRecordProcessor> processors) {
+  private MultiAuditRecordProcessor(Collection<AuditRecordProcessor> processors) {
     this.processors = processors;
   }
 
-  static MultiAuditRecordProcessor create(List<AuditRecordProcessor> processors) {
+  static MultiAuditRecordProcessor create(Collection<AuditRecordProcessor> processors) {
     return new MultiAuditRecordProcessor(new ArrayList<>(processors));
   }
 
@@ -32,7 +32,7 @@ public class MultiAuditRecordProcessor implements AuditRecordProcessor {
 
   @Override
   public CompletableResultCode shutdown() {
-    List<CompletableResultCode> results = new ArrayList<>(processors.size());
+    Collection<CompletableResultCode> results = new ArrayList<>(processors.size());
     for (AuditRecordProcessor processor : processors) {
       results.add(processor.shutdown());
     }
@@ -41,7 +41,7 @@ public class MultiAuditRecordProcessor implements AuditRecordProcessor {
 
   @Override
   public CompletableResultCode forceFlush() {
-    List<CompletableResultCode> results = new ArrayList<>(processors.size());
+    Collection<CompletableResultCode> results = new ArrayList<>(processors.size());
     for (AuditRecordProcessor processor : processors) {
       results.add(processor.forceFlush());
     }
