@@ -167,7 +167,7 @@ final class AuditLogRecordDataAdapter implements LogRecordData {
   @Override
   @Nullable
   public Value<?> getBodyValue() {
-    return audit.getBody();
+    return audit.getBodyValue();
   }
 
   @Override
