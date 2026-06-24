@@ -14,6 +14,8 @@ dependencies {
 
   annotationProcessor("com.google.auto.value:auto-value")
 
+  testImplementation(project(":sdk:testing"))
+
   testImplementation("org.awaitility:awaitility")
   testImplementation("com.google.guava:guava")
 }

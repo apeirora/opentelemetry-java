@@ -133,7 +133,9 @@ public class SdkAuditRecordBuilder implements AuditRecordBuilder {
     }
     if (attributes.containsKey(key)) {
       throw new IllegalStateException(
-          "Cannot add attribute with key '" + key.getKey() + "'; already exists on this record builder");
+          "Cannot add attribute with key '"
+              + key.getKey()
+              + "'; already exists on this record builder");
     }
     attributes.put(key, value);
     return this;
@@ -210,7 +212,7 @@ public class SdkAuditRecordBuilder implements AuditRecordBuilder {
     // Step 4+5: Create the mutable record and pass it through all processors.
     // Transfer ownership of the attributes map to the record (builder must not be reused).
     AttributesMap recordAttributes = this.attributes;
-    this.attributes = AttributesMap.create(0, 0); // invalidate; builder must not be reused after emit()
+    this.attributes = null; // invalidate; builder must not be reused after emit()
     SdkReadWriteAuditRecord rwRecord =
         new SdkReadWriteAuditRecord(
             provider.getResource(),
