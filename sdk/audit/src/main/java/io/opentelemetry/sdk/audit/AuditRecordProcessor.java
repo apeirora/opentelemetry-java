@@ -41,9 +41,6 @@ public interface AuditRecordProcessor extends Closeable {
     for (AuditRecordProcessor p : processors) {
       list.add(p);
     }
-    if (list.isEmpty()) {
-      return NoopAuditRecordProcessor.getInstance();
-    }
     if (list.size() == 1) {
       return list.get(0);
     }
