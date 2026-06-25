@@ -212,7 +212,8 @@ public class SdkAuditRecordBuilder implements AuditRecordBuilder {
     // Step 4+5: Create the mutable record and pass it through all processors.
     // Transfer ownership of the attributes map to the record (builder must not be reused).
     AttributesMap recordAttributes = this.attributes;
-    this.attributes = null; // invalidate; builder must not be reused after emit()
+    this.attributes = 
+        AttributesMap.create(0, 0); // invalidate; builder must not be reused after emit()
     SdkReadWriteAuditRecord rwRecord =
         new SdkReadWriteAuditRecord(
             provider.getResource(),
