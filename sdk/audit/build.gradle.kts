@@ -6,11 +6,13 @@ plugins {
 
 description = "OpenTelemetry Audit Logging SDK"
 otelJava.moduleName.set("io.opentelemetry.sdk.audit")
+otelJava.osgiUnversionedOptionalPackages.add("audit.log")
 
 dependencies {
   api(project(":api:all"))
   api(project(":sdk:common"))
   api(project(":sdk:logs"))
+  api("eu.apeirora:audit.log")
 
   annotationProcessor("com.google.auto.value:auto-value")
 

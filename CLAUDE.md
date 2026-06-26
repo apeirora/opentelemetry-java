@@ -7,7 +7,8 @@
 
 ## Before creating a git commit
 
-Run `./gradlew jApiCmp` as the last step before committing **when Kotlin sources changed**.
+Verify successfull builds with: `gradle spotlessApply build` then
+run `./gradlew jApiCmp` as the last step before committing **when Kotlin sources changed**.
 This updates the API diff files in `docs/apidiffs/current_vs_latest/` and must be included in
 the commit. CI enforces that these files are up to date and will fail if they are stale.
 YAML, Markdown, and workflow-only changes do not require running `jApiCmp`.
@@ -25,4 +26,3 @@ The signing block activates when the `CI` env var is set. Omit `CI` in a workflo
 signing without removing GPG secrets.
 
 Version is always `1.64.0-SNAPSHOT` while `snapshot = true` in `version.gradle.kts`.
-

@@ -35,6 +35,7 @@ dependencies {
   }
 
   testImplementation("com.tngtech.archunit:archunit-junit5")
+  testImplementation("eu.apeirora:audit.log")
 }
 
 // Custom task type for writing artifacts and jars - configuration cache compatible

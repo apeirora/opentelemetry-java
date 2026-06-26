@@ -20,6 +20,15 @@ dependencyResolutionManagement {
     mavenCentral()
     google()
     mavenLocal()
+    maven {
+      url = uri("https://maven.pkg.github.com/apeirora/AuditAPI")
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+          ?: (settings.extra.properties["GITHUB_ACTOR"] as? String) ?: ""
+        password = System.getenv("GITHUB_TOKEN")
+          ?: (settings.extra.properties["GITHUB_TOKEN"] as? String) ?: ""
+      }
+    }
   }
 }
 

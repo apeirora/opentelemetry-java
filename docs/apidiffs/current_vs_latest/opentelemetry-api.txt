@@ -49,7 +49,6 @@ Comparing source compatibility of opentelemetry-api-1.64.0-SNAPSHOT.jar against 
 	+++  NEW SUPERCLASS: java.lang.Object
 	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) io.opentelemetry.api.audit.AuditLoggerBuilder auditLoggerBuilder(java.lang.String)
 	+++  NEW METHOD: PUBLIC(+) io.opentelemetry.api.audit.AuditLogger get(java.lang.String)
-	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.AuditProvider noop()
 +++  NEW CLASS: PUBLIC(+) FINAL(+) io.opentelemetry.api.audit.AuditReceipt  (not serializable)
 	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
 	+++  NEW SUPERCLASS: java.lang.Object
@@ -87,7 +86,6 @@ Comparing source compatibility of opentelemetry-api-1.64.0-SNAPSHOT.jar against 
 	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.
 	+++  NEW SUPERCLASS: java.lang.Object
 	+++  NEW METHOD: PUBLIC(+) STATIC(+) io.opentelemetry.api.audit.AuditProvider get()
-	+++  NEW METHOD: PUBLIC(+) STATIC(+) void resetForTest()
 	+++  NEW METHOD: PUBLIC(+) STATIC(+) void set(io.opentelemetry.api.audit.AuditProvider)
 +++  NEW ENUM: PUBLIC(+) FINAL(+) io.opentelemetry.api.audit.Outcome  (compatible)
 	+++  CLASS FILE FORMAT VERSION: 52.0 <- n.a.

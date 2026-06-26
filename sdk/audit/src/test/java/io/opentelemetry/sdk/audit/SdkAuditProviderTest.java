@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.opentelemetry.api.audit.ActorType;
 import io.opentelemetry.api.audit.AuditDeliveryException;
 import io.opentelemetry.api.audit.AuditLogger;
-import io.opentelemetry.api.audit.AuditProvider;
 import io.opentelemetry.api.audit.AuditReceipt;
 import io.opentelemetry.api.audit.Outcome;
 import io.opentelemetry.api.common.AttributeKey;
@@ -408,20 +407,5 @@ class SdkAuditProviderTest {
 
     AuditRecordData data = exporter.getFinishedAuditRecords().get(0);
     assertThat(data.getIntegrityValue()).containsExactly(0x01, 0x02, 0x03);
-  }
-
-  @Test
-  void noopProvider_emitReturnsReceiptWithoutError() {
-    AuditProvider noop = AuditProvider.noop();
-    AuditReceipt receipt =
-        noop.get("test")
-            .auditRecordBuilder()
-            .setTimestamp(Instant.now())
-            .setEventName("noop.event")
-            .setActor("u1", ActorType.USER)
-            .setAction("READ")
-            .setOutcome(Outcome.SUCCESS)
-            .emit();
-    assertThat(receipt).isNotNull();
   }
 }

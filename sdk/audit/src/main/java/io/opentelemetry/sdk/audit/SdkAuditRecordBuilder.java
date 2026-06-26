@@ -5,6 +5,10 @@
 
 package io.opentelemetry.sdk.audit;
 
+import audit.log.Actor;
+import audit.log.AuditEvent;
+import audit.log.Source;
+import audit.log.Target;
 import io.opentelemetry.api.audit.ActorType;
 import io.opentelemetry.api.audit.Audit;
 import io.opentelemetry.api.audit.AuditDeliveryException;
@@ -16,13 +20,14 @@ import io.opentelemetry.api.common.Value;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.internal.AttributesMap;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /** SDK implementation of {@link AuditRecordBuilder}. */
-public class SdkAuditRecordBuilder implements AuditRecordBuilder {
+class SdkAuditRecordBuilder implements AuditRecordBuilder {
 
   private final SdkAuditProvider provider;
   private final SdkAuditProvider.AuditLoggerKey loggerKey;
@@ -141,6 +146,27 @@ public class SdkAuditRecordBuilder implements AuditRecordBuilder {
     return this;
   }
 
+  /**
+   * FIXME ensure all values are set.
+   *
+   * @param event with all relevant information to build an AuditRecord
+   * @return SdkAuditRecordBuilder this
+   */
+  public SdkAuditRecordBuilder setAuditEvent(AuditEvent event) {
+    Source src = event.getSource();
+    Target tgt = event.getTarget();
+    Actor actor = event.getActor();
+    setSource(src.getName(), src.getType());
+    setTarget(tgt.getName(), tgt.getType());
+    setAction(event.getAction());
+    try {
+      setActor(actor.getName(), ActorType.valueOf(actor.getType().toUpperCase(Locale.ROOT)));
+    } catch (IllegalArgumentException e) {
+      setActor(actor.getName(), ActorType.SYSTEM);
+    }
+    return this;
+  }
+
   @Override
   public SdkAuditRecordBuilder setIntegrityValue(byte[] integrityValue) {
     this.integrityValue = integrityValue;
@@ -212,7 +238,7 @@ public class SdkAuditRecordBuilder implements AuditRecordBuilder {
     // Step 4+5: Create the mutable record and pass it through all processors.
     // Transfer ownership of the attributes map to the record (builder must not be reused).
     AttributesMap recordAttributes = this.attributes;
-    this.attributes = 
+    this.attributes =
         AttributesMap.create(0, 0); // invalidate; builder must not be reused after emit()
     SdkReadWriteAuditRecord rwRecord =
         new SdkReadWriteAuditRecord(
