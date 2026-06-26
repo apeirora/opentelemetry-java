@@ -7,13 +7,13 @@ package io.opentelemetry.sdk.autoconfigure.declarativeconfig;
 
 import static io.opentelemetry.sdk.autoconfigure.declarativeconfig.FileConfigUtil.requireNonNull;
 
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalTracerConfigModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalTracerConfiguratorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalTracerMatcherAndConfigModel;
 import io.opentelemetry.sdk.common.internal.ScopeConfigurator;
 import io.opentelemetry.sdk.common.internal.ScopeConfiguratorBuilder;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.ExperimentalTracerConfigModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.ExperimentalTracerConfiguratorModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.ExperimentalTracerMatcherAndConfigModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanLimits;
@@ -64,6 +64,11 @@ final class TracerProviderFactory
           processor ->
               builder.addSpanProcessor(
                   SpanProcessorFactory.getInstance().create(processor, context)));
+    }
+
+    if (tracerProviderModel.getIdGenerator() != null) {
+      builder.setIdGenerator(
+          IdGeneratorFactory.getInstance().create(tracerProviderModel.getIdGenerator(), context));
     }
 
     ExperimentalTracerConfiguratorModel tracerConfiguratorModel =

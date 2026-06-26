@@ -106,16 +106,16 @@ fun getCurrentClassPath(): List<File> {
 if (!project.hasProperty("otel.release") && !project.name.startsWith("bom")) {
   afterEvaluate {
     tasks {
-      val jApiCmp by registering(JapicmpTask::class) {
+      val jApiCmp = register<JapicmpTask>("jApiCmp") {
         // Depends on jar task for all published modules. See notes below.
         getAllPublishedModules().forEach {
           dependsOn(it.tasks.getByName("jar"))
         }
 
         // the japicmp "new" version is either the user-specified one, or the locally built jar.
-        val apiNewVersion: String? by project
+        val apiNewVersion = project.findProperty("apiNewVersion") as String?
         // the japicmp "old" version is either the user-specified one, or the latest release.
-        val apiBaseVersion: String? by project
+        val apiBaseVersion = project.findProperty("apiBaseVersion") as String?
         val baselineVersion = apiBaseVersion ?: latestReleasedVersion
 
         // Setup new and old classpath, new and old archives.
@@ -168,7 +168,7 @@ if (!project.hasProperty("otel.release") && !project.name.startsWith("bom")) {
         packageExcludes.addAll(
           "*.internal",
           "*.internal.*",
-          "io.opentelemetry.internal.shaded.jctools.*",
+          "io.opentelemetry.sdk.trace.internal.shaded.jctools.*",
           // Temporarily suppress warnings from public generated classes from :sdk-extensions:jaeger-remote-sampler
           "io.opentelemetry.sdk.extension.trace.jaeger.proto.api_v2"
         )

@@ -17,6 +17,7 @@ import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +52,7 @@ public final class PeriodicMetricReader implements MetricReader {
   private volatile CollectionRegistration collectionRegistration = CollectionRegistration.noop();
 
   @Nullable private volatile ScheduledFuture<?> scheduledFuture;
+  private final int maxExportBatchSize;
 
   /**
    * Returns a new {@link PeriodicMetricReader} which exports to the {@code exporter} once every
@@ -66,10 +68,14 @@ public final class PeriodicMetricReader implements MetricReader {
   }
 
   PeriodicMetricReader(
-      MetricExporter exporter, long intervalNanos, ScheduledExecutorService scheduler) {
+      MetricExporter exporter,
+      long intervalNanos,
+      ScheduledExecutorService scheduler,
+      int maxExportBatchSize) {
     this.exporter = exporter;
     this.intervalNanos = intervalNanos;
     this.scheduler = scheduler;
+    this.maxExportBatchSize = maxExportBatchSize;
     this.scheduled = new Scheduled();
   }
 
@@ -88,6 +94,13 @@ public final class PeriodicMetricReader implements MetricReader {
     return exporter.getMemoryMode();
   }
 
+  /**
+   * Forces a flush of all metrics.
+   *
+   * <p>If an export is already in progress, the flush will be skipped and the returned result will
+   * be completed exceptionally with an {@link IllegalStateException}. Callers can inspect the cause
+   * via {@link CompletableResultCode#getFailureThrowable()}.
+   */
   @Override
   public CompletableResultCode forceFlush() {
     CompletableResultCode result = new CompletableResultCode();
@@ -100,7 +113,7 @@ public final class PeriodicMetricReader implements MetricReader {
                 if (doRunResult.isSuccess() && flushResult.isSuccess()) {
                   result.succeed();
                 } else {
-                  result.fail();
+                  result.failExceptionally(new IllegalStateException(EXPORT_IN_PROGRESS_MESSAGE));
                 }
               });
         });
@@ -163,6 +176,8 @@ public final class PeriodicMetricReader implements MetricReader {
         + exporter
         + ", intervalNanos="
         + intervalNanos
+        + ", maxExportBatchSize="
+        + maxExportBatchSize
         + '}';
   }
 
@@ -177,6 +192,9 @@ public final class PeriodicMetricReader implements MetricReader {
     }
   }
 
+  private static final String EXPORT_IN_PROGRESS_MESSAGE =
+      "Export is already in progress, skipping flush";
+
   private final class Scheduled implements Runnable {
 
     private final AtomicBoolean exportAvailable = new AtomicBoolean(true);
@@ -187,13 +205,56 @@ public final class PeriodicMetricReader implements MetricReader {
 
     private Scheduled() {}
 
+    private CompletableResultCode exportMetrics(Collection<MetricData> metricData) {
+      if (maxExportBatchSize == 0) {
+        return exporter.export(metricData);
+      }
+      Collection<Collection<MetricData>> batches =
+          MetricExportBatcher.batchMetrics(metricData, maxExportBatchSize);
+      CompletableResultCode sequentialResult = new CompletableResultCode();
+      AtomicBoolean anyFailed = new AtomicBoolean(false);
+      Iterator<Collection<MetricData>> batchIterator = batches.iterator();
+      Runnable exportNext =
+          new Runnable() {
+            @Override
+            public void run() {
+              while (batchIterator.hasNext()) {
+                Collection<MetricData> currentBatch = batchIterator.next();
+                CompletableResultCode currentResult = exporter.export(currentBatch);
+                if (currentResult.isDone()) {
+                  if (!currentResult.isSuccess()) {
+                    anyFailed.set(true);
+                  }
+                } else {
+                  currentResult.whenComplete(
+                      () -> {
+                        if (!currentResult.isSuccess()) {
+                          anyFailed.set(true);
+                        }
+                        this.run();
+                      });
+                  return;
+                }
+              }
+              if (anyFailed.get()) {
+                sequentialResult.fail();
+              } else {
+                sequentialResult.succeed();
+              }
+            }
+          };
+      exportNext.run();
+      return sequentialResult;
+    }
+
     void setMeterProvider(MeterProvider meterProvider) {
       instrumentation = new MetricReaderInstrumentation(COMPONENT_ID, meterProvider);
     }
 
     @Override
     public void run() {
-      // Ignore the CompletableResultCode from doRun() in order to keep run() asynchronous
+      // Ignore the CompletableResultCode from doRun() in order to keep run()
+      // asynchronous
       doRun();
     }
 
@@ -217,11 +278,11 @@ public final class PeriodicMetricReader implements MetricReader {
             exportAvailable.set(true);
             flushResult.succeed();
           } else {
-            CompletableResultCode result = exporter.export(metricData);
+            CompletableResultCode result = exportMetrics(metricData);
             result.whenComplete(
                 () -> {
                   if (!result.isSuccess()) {
-                    logger.log(Level.FINE, "Exporter failed");
+                    logger.log(Level.WARNING, "Exporter failed");
                   }
                   exportAvailable.set(true);
                   flushResult.succeed();
@@ -233,8 +294,8 @@ public final class PeriodicMetricReader implements MetricReader {
           flushResult.fail();
         }
       } else {
-        logger.log(Level.FINE, "Exporter busy. Dropping metrics.");
-        flushResult.fail();
+        logger.log(Level.FINE, EXPORT_IN_PROGRESS_MESSAGE);
+        flushResult.failExceptionally(new IllegalStateException(EXPORT_IN_PROGRESS_MESSAGE));
       }
       return flushResult;
     }

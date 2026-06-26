@@ -19,9 +19,9 @@ import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.internal.testing.CleanupExtension;
 import io.opentelemetry.internal.testing.slf4j.SuppressLogger;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import io.opentelemetry.sdk.internal.ExtendedOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.samplers.ParentBasedSamplerBuilder;
 import java.io.ByteArrayInputStream;
@@ -95,7 +95,10 @@ class DeclarativeConfigurationCreateTest {
                 "cert_file: .*\n",
                 "cert_file: "
                     + clientCertificatePath.replace("\\", "\\\\")
-                    + System.lineSeparator());
+                    + System.lineSeparator())
+            // A snippet references a custom id generator named my_custom_id_generator. Replace with
+            // one named test, which we provide via SPI
+            .replace("my_custom_id_generator", "test");
     InputStream is =
         new ByteArrayInputStream(rewrittenExampleContent.getBytes(StandardCharsets.UTF_8));
 

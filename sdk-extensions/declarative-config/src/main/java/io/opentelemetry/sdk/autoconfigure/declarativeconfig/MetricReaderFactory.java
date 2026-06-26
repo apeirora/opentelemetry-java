@@ -8,16 +8,17 @@ package io.opentelemetry.sdk.autoconfigure.declarativeconfig;
 import static io.opentelemetry.sdk.autoconfigure.declarativeconfig.FileConfigUtil.requireNonNull;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigException;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.MetricReaderModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.PeriodicMetricReaderModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.PullMetricExporterModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.PullMetricReaderModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.PushMetricExporterModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MetricReaderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PeriodicMetricReaderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PullMetricExporterModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PullMetricReaderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PushMetricExporterModel;
 import io.opentelemetry.sdk.metrics.export.CardinalityLimitSelector;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReaderBuilder;
+import io.opentelemetry.sdk.metrics.internal.SdkMeterProviderUtil;
 import java.time.Duration;
 
 final class MetricReaderFactory
@@ -70,6 +71,10 @@ final class MetricReaderFactory
       if (model.getCardinalityLimits() != null) {
         cardinalityLimitSelector =
             CardinalityLimitsFactory.getInstance().create(model.getCardinalityLimits(), context);
+      }
+      if (model.getMaxExportBatchSizeDevelopment() != null) {
+        SdkMeterProviderUtil.setMaxExportBatchSize(
+            builder, model.getMaxExportBatchSizeDevelopment());
       }
 
       MetricReader reader = context.addCloseable(builder.build());
