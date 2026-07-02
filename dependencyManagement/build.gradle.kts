@@ -17,6 +17,7 @@ val slf4jVersion = "2.0.18"
 val opencensusVersion = "0.31.1"
 val prometheusServerVersion = "1.8.0"
 val armeriaVersion = "1.40.0"
+val apeiroraAuditLogVersion = "0.0.1-SNAPSHOT"
 val junitVersion = "5.14.4"
 val junitPlatformVersion = "1.14.4"
 val okhttpVersion = "5.4.0"
@@ -52,6 +53,8 @@ val DEPENDENCIES = listOf(
   "com.linecorp.armeria:armeria-grpc:${armeriaVersion}",
   "com.linecorp.armeria:armeria-grpc-protocol:${armeriaVersion}",
   "com.linecorp.armeria:armeria-junit5:${armeriaVersion}",
+
+  "eu.apeirora:audit.log:${apeiroraAuditLogVersion}",
 
   "com.google.auto.value:auto-value:${autoValueVersion}",
   "com.google.auto.value:auto-value-annotations:${autoValueVersion}",

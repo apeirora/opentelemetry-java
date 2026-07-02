@@ -69,6 +69,8 @@ jobs:
           # JMH-based tests run only if this environment variable is set to true
           RUN_JMH_BASED_TESTS: ${{ matrix.jmh-based-tests }}
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
 
       - name: Check for diff
         # The jApiCmp diff compares current to latest, which isn't appropriate for release branches
@@ -134,6 +136,8 @@ jobs:
           ./gradlew nativeTest --no-configuration-cache --no-parallel
         env:
           DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
 
   required-status-check:
     # markdown-link-check is not required so pull requests are not blocked if external links break

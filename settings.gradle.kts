@@ -20,6 +20,15 @@ dependencyResolutionManagement {
     mavenCentral()
     google()
     mavenLocal()
+    maven {
+      url = uri("https://maven.pkg.github.com/apeirora/AuditAPI")
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+          ?: (settings.extra.properties["GITHUB_ACTOR"] as? String) ?: ""
+        password = System.getenv("GITHUB_TOKEN")
+          ?: (settings.extra.properties["GITHUB_TOKEN"] as? String) ?: ""
+      }
+    }
   }
 }
 
@@ -44,6 +53,7 @@ include(":exporters:sender:okhttp")
 include(":exporters:logging")
 include(":exporters:logging-otlp")
 include(":exporters:otlp:all")
+include(":exporters:otlp:audit")
 include(":exporters:otlp:common")
 include(":exporters:otlp:profiles")
 include(":exporters:otlp:testing-internal")
@@ -61,6 +71,7 @@ include(":opentelemetry-jfr-profiles-shim")
 include(":opentracing-shim")
 include(":perf-harness")
 include(":sdk:all")
+include(":sdk:audit")
 include(":sdk:common")
 include(":sdk:logs")
 include(":sdk:metrics")
